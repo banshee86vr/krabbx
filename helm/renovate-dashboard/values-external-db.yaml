@@ -1,0 +1,128 @@
+# Values for using external PostgreSQL and Redis instances
+# Use this configuration when you have existing database infrastructure
+
+# ============================================================================
+# Frontend Configuration
+# ============================================================================
+frontend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-frontend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  replicaCount: 2
+
+# ============================================================================
+# Backend Configuration
+# ============================================================================
+backend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  replicaCount: 2
+  
+  env:
+    nodeEnv: production
+    port: 3001
+    logLevel: INFO
+    storageMode: database
+    scanIntervalMinutes: 60
+    maxScanLimit: 0
+    useRedis: true
+  
+  github:
+    token: ""  # Set your GitHub token
+    org: "your-organization"
+    authClientId: ""  # Set your OAuth client ID
+    authClientSecret: ""  # Set your OAuth client secret
+  
+  session:
+    secret: ""  # Will be auto-generated if not set
+  
+  # Override with external database URLs
+  extraEnvVars:
+    - name: DATABASE_URL
+      value: "postgresql://username:password@external-postgres.example.com:5432/renovate_dashboard"
+    # Or use valueFrom to reference existing secrets:
+    # - name: DATABASE_URL
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: external-database-secret
+    #       key: database-url
+    - name: REDIS_URL
+      value: "redis://external-redis.example.com:6379"
+    # For Redis with auth:
+    # - name: REDIS_URL
+    #   value: "redis://:password@external-redis.example.com:6379"
+    # Or use valueFrom:
+    # - name: REDIS_URL
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: external-redis-secret
+    #       key: redis-url
+
+# ============================================================================
+# Disable Internal PostgreSQL
+# ============================================================================
+postgresql:
+  enabled: false
+
+# ============================================================================
+# Disable Internal Redis
+# ============================================================================
+redis:
+  enabled: false
+  appendonly: "yes"
+
+# ============================================================================
+# Database Migration Job
+# ============================================================================
+migration:
+  enabled: true
+  # The migration job will use the same DATABASE_URL from backend.extraEnvVars
+  # Ensure the external database is accessible from the Kubernetes cluster
+
+# ============================================================================
+# Ingress Configuration
+# ============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: renovate-dashboard.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /socket.io
+          pathType: Prefix
+          service: backend
+  tls:
+    - secretName: renovate-dashboard-tls
+      hosts:
+        - renovate-dashboard.example.com
+
+# ============================================================================
+# Additional Configuration
+# ============================================================================
+serviceAccount:
+  create: true
+
+# Enable if your external databases are also in Kubernetes
+networkPolicy:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: true
+  frontend:
+    minAvailable: 1
+  backend:
+    minAvailable: 1
+

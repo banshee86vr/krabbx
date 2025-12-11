@@ -1,0 +1,495 @@
+# Default values for renovate-dashboard
+# This is a YAML-formatted file.
+
+# Global settings
+global:
+  # Image pull secrets for private registries
+  imagePullSecrets: []
+  # storageClass for persistent volumes (empty = cluster default)
+  storageClass: ""
+
+# Image registry configuration
+imageRegistry: ""
+
+# ============================================================================
+# Frontend Configuration
+# ============================================================================
+frontend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-frontend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+    annotations: {}
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  podAnnotations: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+  
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# ============================================================================
+# Backend Configuration
+# ============================================================================
+backend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 3001
+    targetPort: 3001
+    annotations: {}
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  podAnnotations: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3001
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3001
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  
+  # Environment configuration
+  env:
+    nodeEnv: production
+    port: 3001
+    logLevel: INFO
+    storageMode: database
+    scanIntervalMinutes: 60
+    maxScanLimit: 0
+    useRedis: true
+  
+  # GitHub configuration
+  github:
+    # GitHub API token (required)
+    token: ""
+    # GitHub organization name (required)
+    org: ""
+    # GitHub OAuth App Client ID (required)
+    authClientId: ""
+    # GitHub OAuth App Client Secret (required)
+    authClientSecret: ""
+    # Use existing secret for GitHub credentials
+    existingSecret: ""
+    # Keys in the existing secret
+    existingSecretKeys:
+      token: github-token
+      authClientId: github-auth-client-id
+      authClientSecret: github-auth-client-secret
+  
+  # Session configuration
+  session:
+    # Session secret (required - will be auto-generated if not provided)
+    secret: ""
+    # Use existing secret for session
+    existingSecret: ""
+    existingSecretKey: session-secret
+  
+  # Microsoft Teams notifications (optional)
+  teams:
+    webhookUrl: ""
+    existingSecret: ""
+    existingSecretKey: teams-webhook-url
+  
+  # Email/SMTP configuration (optional)
+  email:
+    enabled: false
+    host: ""
+    port: 587
+    secure: false
+    user: ""
+    password: ""
+    fromEmail: ""
+    existingSecret: ""
+    existingSecretKeys:
+      user: smtp-user
+      password: smtp-password
+  
+  # Specific repositories to scan (comma-separated)
+  scanRepos: ""
+
+# ============================================================================
+# PostgreSQL Configuration
+# ============================================================================
+postgresql:
+  enabled: true
+  
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  
+  # PostgreSQL credentials
+  auth:
+    username: postgres
+    password: ""
+    database: renovate_dashboard
+    existingSecret: ""
+    existingSecretKeys:
+      username: postgres-user
+      password: postgres-password
+  
+  service:
+    type: ClusterIP
+    port: 5432
+  
+  # Persistence configuration
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    annotations: {}
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  podAnnotations: {}
+  podSecurityContext:
+    fsGroup: 999
+  
+  securityContext:
+    runAsUser: 999
+    runAsNonRoot: true
+  
+  livenessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - pg_isready -U postgres
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+  
+  readinessProbe:
+    exec:
+      command:
+        - /bin/sh
+        - -c
+        - pg_isready -U postgres
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# ============================================================================
+# Redis Configuration
+# ============================================================================
+redis:
+  enabled: true
+  
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  
+  # Redis authentication
+  auth:
+    enabled: false
+    password: ""
+    existingSecret: ""
+    existingSecretKey: redis-password
+  
+  service:
+    type: ClusterIP
+    port: 6379
+  
+  # Persistence configuration
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 5Gi
+    annotations: {}
+  
+  # Redis configuration
+  appendonly: "yes"
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  podAnnotations: {}
+  podSecurityContext:
+    fsGroup: 999
+  
+  securityContext:
+    runAsUser: 999
+    runAsNonRoot: true
+  
+  livenessProbe:
+    exec:
+      command:
+        - redis-cli
+        - ping
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+  
+  readinessProbe:
+    exec:
+      command:
+        - redis-cli
+        - ping
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# ============================================================================
+# Database Migration Job
+# ============================================================================
+migration:
+  enabled: true
+  
+  # Run migration as a pre-install/pre-upgrade hook
+  hook:
+    enabled: true
+    weight: "-5"
+    deletePolicy: before-hook-creation
+  
+  image:
+    repository: renovate-dashboard-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 300
+
+# ============================================================================
+# Ingress Configuration
+# ============================================================================
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  
+  hosts:
+    - host: renovate-dashboard.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /socket.io
+          pathType: Prefix
+          service: backend
+  
+  tls: []
+    # - secretName: renovate-dashboard-tls
+    #   hosts:
+    #     - renovate-dashboard.example.com
+
+# ============================================================================
+# Service Account
+# ============================================================================
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# ============================================================================
+# Network Policies
+# ============================================================================
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  
+  ingress:
+    - from:
+      - podSelector: {}
+  
+  egress:
+    - to:
+      - podSelector: {}
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+
+# ============================================================================
+# Pod Disruption Budget
+# ============================================================================
+podDisruptionBudget:
+  enabled: false
+  frontend:
+    minAvailable: 1
+  backend:
+    minAvailable: 1
+
+# ============================================================================
+# Monitoring
+# ============================================================================
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+
+# ============================================================================
+# Additional Configuration
+# ============================================================================
+
+# Extra environment variables for backend
+extraEnvVars: []
+  # - name: CUSTOM_VAR
+  #   value: "custom-value"
+
+# Extra environment variables from ConfigMaps
+extraEnvVarsCM: []
+
+# Extra environment variables from Secrets
+extraEnvVarsSecret: []
+
+# Additional volumes
+extraVolumes: []
+
+# Additional volume mounts
+extraVolumeMounts: []
+
+# Init containers
+initContainers: []
+
+# Sidecar containers
+sidecars: []
+

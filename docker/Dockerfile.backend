@@ -1,0 +1,70 @@
+# Build stage
+FROM node:20-alpine AS builder
+
+WORKDIR /workspace
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy workspace configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Copy backend package files
+COPY backend/package.json ./backend/
+
+# Install dependencies (including dev deps for build)
+RUN pnpm install --frozen-lockfile
+
+# Copy prisma schema and backend source
+COPY backend/prisma ./backend/prisma
+COPY backend/tsconfig.json ./backend/
+COPY backend/src ./backend/src
+
+# Generate Prisma client and build
+WORKDIR /workspace/backend
+RUN pnpm exec prisma generate && pnpm run build
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /workspace
+
+# Install runtime dependencies
+RUN apk add --no-cache openssl wget && \
+    corepack enable && corepack prepare pnpm@latest --activate
+
+# Copy workspace configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY backend/package.json ./backend/
+COPY backend/prisma ./backend/prisma
+
+# Install ALL dependencies (need Prisma CLI for generation)
+RUN pnpm install --frozen-lockfile --filter backend
+
+# Generate Prisma client
+WORKDIR /workspace/backend
+RUN pnpm exec prisma generate
+
+# Copy built application from builder
+COPY --from=builder /workspace/backend/dist ./dist
+
+# Cleanup to reduce image size (be selective - don't break pnpm!)
+RUN pnpm store prune && \
+    rm -rf /root/.npm /root/.cache /root/.local /root/.pnpm-store /tmp/* /var/cache/apk/*
+
+# Create non-root user and set permissions
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 && \
+    chown -R nodejs:nodejs /workspace
+
+USER nodejs
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
+
+# Start the application
+CMD ["node", "/workspace/backend/dist/index.js"]

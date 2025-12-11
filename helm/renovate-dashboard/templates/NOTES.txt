@@ -1,0 +1,121 @@
+==============================================================================
+  RenovateBot Dashboard has been installed successfully!
+==============================================================================
+
+Your release is named: {{ .Release.Name }}
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }} -n {{ .Release.Namespace }}
+  $ helm get all {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+{{- if .Values.ingress.enabled }}
+
+INGRESS:
+--------
+The application is accessible via Ingress:
+
+{{- range .Values.ingress.hosts }}
+  - {{ if $.Values.ingress.tls }}https{{ else }}http{{ end }}://{{ .host }}
+{{- end }}
+
+{{- else }}
+
+SERVICES:
+---------
+The application has been deployed with the following services:
+
+Frontend Service:
+  $ kubectl get svc {{ include "renovate-dashboard.fullname" . }}-frontend -n {{ .Release.Namespace }}
+
+Backend Service:
+  $ kubectl get svc {{ include "renovate-dashboard.fullname" . }}-backend -n {{ .Release.Namespace }}
+
+To access the frontend from your local machine:
+  $ kubectl port-forward svc/{{ include "renovate-dashboard.fullname" . }}-frontend {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }} -n {{ .Release.Namespace }}
+  
+Then open your browser to: http://localhost:{{ .Values.frontend.service.port }}
+
+To access the backend API from your local machine:
+  $ kubectl port-forward svc/{{ include "renovate-dashboard.fullname" . }}-backend {{ .Values.backend.service.port }}:{{ .Values.backend.service.port }} -n {{ .Release.Namespace }}
+  
+Then the API will be available at: http://localhost:{{ .Values.backend.service.port }}
+
+{{- end }}
+
+COMPONENTS:
+-----------
+{{- if .Values.frontend.enabled }}
+✓ Frontend ({{ .Values.frontend.replicaCount }} replicas)
+{{- end }}
+{{- if .Values.backend.enabled }}
+✓ Backend ({{ .Values.backend.replicaCount }} replicas)
+{{- end }}
+{{- if .Values.postgresql.enabled }}
+✓ PostgreSQL Database
+{{- end }}
+{{- if .Values.redis.enabled }}
+✓ Redis Cache
+{{- end }}
+{{- if .Values.migration.enabled }}
+✓ Database Migrations (pre-install/pre-upgrade hook)
+{{- end }}
+
+MONITORING:
+-----------
+To check the status of your pods:
+  $ kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+To view logs:
+  Frontend:  $ kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=frontend
+  Backend:   $ kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=backend
+  PostgreSQL: $ kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=postgresql
+  Redis:     $ kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=redis
+
+{{- if .Values.backend.autoscaling.enabled }}
+
+AUTOSCALING:
+------------
+Backend autoscaling is enabled:
+  Min replicas: {{ .Values.backend.autoscaling.minReplicas }}
+  Max replicas: {{ .Values.backend.autoscaling.maxReplicas }}
+  
+  $ kubectl get hpa {{ include "renovate-dashboard.fullname" . }}-backend -n {{ .Release.Namespace }}
+{{- end }}
+
+{{- if .Values.frontend.autoscaling.enabled }}
+
+Frontend autoscaling is enabled:
+  Min replicas: {{ .Values.frontend.autoscaling.minReplicas }}
+  Max replicas: {{ .Values.frontend.autoscaling.maxReplicas }}
+  
+  $ kubectl get hpa {{ include "renovate-dashboard.fullname" . }}-frontend -n {{ .Release.Namespace }}
+{{- end }}
+
+CONFIGURATION:
+--------------
+GitHub Organization: {{ .Values.backend.github.org }}
+Storage Mode: {{ .Values.backend.env.storageMode }}
+Scan Interval: {{ .Values.backend.env.scanIntervalMinutes }} minutes
+{{- if .Values.backend.email.enabled }}
+Email Notifications: Enabled
+{{- end }}
+{{- if .Values.backend.teams.webhookUrl }}
+Teams Notifications: Enabled
+{{- end }}
+
+IMPORTANT NOTES:
+----------------
+{{- if not .Values.postgresql.persistence.enabled }}
+⚠️  WARNING: PostgreSQL persistence is disabled! Data will be lost on pod restart.
+{{- end }}
+{{- if not .Values.redis.persistence.enabled }}
+⚠️  WARNING: Redis persistence is disabled! Session data will be lost on pod restart.
+{{- end }}
+
+For more information and documentation, visit:
+  https://github.com/prometeia/app-renovate-bot-dashboard
+
+To uninstall this release:
+  $ helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+

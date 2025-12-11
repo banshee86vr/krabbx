@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Repository {
+  id                    String       @id @default(cuid())
+  githubId              Int          @unique
+  name                  String
+  fullName              String       @unique // org/repo format
+  description           String?
+  defaultBranch         String       @default("main")
+  renovateAdopted       Boolean      @default(false)
+  renovateConfigPath    String?      // Path to renovate.json if exists
+  renovateConfigValid   Boolean?     // Whether the config is valid
+  lastScanAt            DateTime?
+  outdatedDependencies  Int          @default(0)
+  totalDependencies     Int          @default(0)
+  openRenovatePRs       Int          @default(0)
+  htmlUrl               String
+  isArchived            Boolean      @default(false)
+  isPrivate             Boolean      @default(false)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  dependencies          Dependency[]
+  scanHistory           ScanHistory[]
+
+  @@index([renovateAdopted])
+  @@index([lastScanAt])
+}
+
+model Dependency {
+  id              String          @id @default(cuid())
+  repositoryId    String
+  packageName     String
+  packageManager  String          // npm, pip, maven, nuget, docker, etc.
+  dependencyType  DependencyType  @default(package) // package, provider, action, docker, workflow
+  currentVersion  String
+  latestVersion   String?
+  updateType      UpdateType?
+  isOutdated      Boolean         @default(false)
+  hasOpenPR       Boolean         @default(false)
+  prUrl           String?         // Link to Renovate PR if exists
+  prNumber        Int?
+  sourceFile      String?         // package.json, requirements.txt, etc.
+  lastCheckedAt   DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  repository      Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@unique([repositoryId, packageName, packageManager])
+  @@index([isOutdated])
+  @@index([packageManager])
+  @@index([dependencyType])
+  @@index([updateType])
+}
+
+model ScanHistory {
+  id                    String   @id @default(cuid())
+  repositoryId          String
+  scanType              ScanType
+  status                ScanStatus
+  totalDependencies     Int      @default(0)
+  outdatedDependencies  Int      @default(0)
+  newUpdatesFound       Int      @default(0)
+  openPRs               Int      @default(0)
+  errorMessage          String?
+  durationMs            Int?
+  createdAt             DateTime @default(now())
+
+  repository            Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@index([repositoryId])
+  @@index([createdAt])
+}
+
+model NotificationConfig {
+  id        String              @id @default(cuid())
+  type      NotificationType
+  name      String
+  enabled   Boolean             @default(true)
+  config    Json                // Flexible config storage
+  triggers  NotificationTrigger[]
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@unique([type, name])
+}
+
+model NotificationHistory {
+  id          String           @id @default(cuid())
+  type        NotificationType
+  trigger     NotificationTrigger
+  recipient   String
+  subject     String
+  content     String
+  status      NotificationStatus
+  errorMessage String?
+  sentAt      DateTime         @default(now())
+
+  @@index([type])
+  @@index([sentAt])
+}
+
+model AppSettings {
+  id        String   @id @default("app-settings")
+  githubOrg String
+  scanIntervalMinutes Int @default(60)
+  lastFullScanAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UpdateType {
+  major
+  minor
+  patch
+  digest
+  pin
+  rollback
+  bump
+}
+
+enum DependencyType {
+  // JavaScript/TypeScript
+  npm
+  yarn
+  pnpm
+  
+  // Python
+  pip
+  pip_requirements
+  pipenv
+  poetry
+  
+  // Java
+  maven
+  gradle
+  
+  // Go
+  gomod
+  
+  // Rust
+  cargo
+  
+  // PHP
+  composer
+  
+  // Ruby
+  bundler
+  
+  // .NET
+  nuget
+  
+  // Docker
+  docker
+  dockerfile
+  docker_image
+  
+  // Terraform (SEPARATE: provider vs module)
+  terraform_provider
+  terraform_module
+  terraform
+  
+  // Kubernetes & Cloud Native
+  kubernetes
+  helm
+  kustomize
+  
+  // CI/CD & GitHub
+  github_action
+  github_releases
+  github_tags
+  circleci
+  azure_pipelines
+  gitlab_ci
+  
+  // Infrastructure as Code
+  ansible
+  argocd
+  flux
+  
+  // Other managers
+  bazel
+  cocoapods
+  swift
+  homebrew
+  asdf
+  
+  // Generic/Fallback
+  package
+  provider
+  action
+  workflow
+}
+
+enum ScanType {
+  full
+  incremental
+  manual
+}
+
+enum ScanStatus {
+  pending
+  running
+  completed
+  failed
+}
+
+enum NotificationType {
+  teams
+  email
+  inApp
+}
+
+enum NotificationTrigger {
+  critical
+  newAdoption
+  stalePR
+  scanComplete
+}
+
+enum NotificationStatus {
+  sent
+  failed
+  pending
+}

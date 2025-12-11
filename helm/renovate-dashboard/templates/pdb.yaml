@@ -1,0 +1,27 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-frontend
+  labels:
+    {{- include "renovate-dashboard.frontend.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.frontend.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "renovate-dashboard.frontend.selectorLabels" . | nindent 6 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-backend
+  labels:
+    {{- include "renovate-dashboard.backend.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.backend.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 6 }}
+{{- end }}
+

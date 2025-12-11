@@ -1,0 +1,15 @@
+apiVersion: v2
+name: renovate-dashboard
+description: A Helm chart for Renovate Bot Dashboard - Monitor and manage Renovate bot updates
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - renovate
+  - dashboard
+  - dependency-management
+  - github
+home: https://github.com/prometeia/app-renovate-bot-dashboard
+maintainers:
+  - name: Prometeia Team
+

@@ -1,0 +1,157 @@
+# Development values for renovate-dashboard
+# This is an example configuration for development/testing environments
+
+# ============================================================================
+# Frontend Configuration
+# ============================================================================
+frontend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-frontend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  replicaCount: 1
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  
+  autoscaling:
+    enabled: false
+
+# ============================================================================
+# Backend Configuration
+# ============================================================================
+backend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-backend
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  
+  replicaCount: 1
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  
+  autoscaling:
+    enabled: false
+  
+  env:
+    nodeEnv: development
+    port: 3001
+    logLevel: DEBUG  # More verbose logging for development
+    storageMode: database
+    scanIntervalMinutes: 60
+    maxScanLimit: 10  # Limit scans in dev
+    useRedis: true
+  
+  # Set these values for development
+  github:
+    token: "ghp_your_dev_token"
+    org: "your-test-org"
+    authClientId: "your_dev_oauth_client_id"
+    authClientSecret: "your_dev_oauth_client_secret"
+  
+  session:
+    secret: "dev-session-secret-change-me"
+  
+  # Optional features disabled in dev
+  teams:
+    webhookUrl: ""
+  
+  email:
+    enabled: false
+
+# ============================================================================
+# PostgreSQL Configuration
+# ============================================================================
+postgresql:
+  enabled: true
+  
+  auth:
+    username: postgres
+    password: "postgres"  # Simple password for dev
+    database: renovate_dashboard
+  
+  # Use emptyDir for development (no persistent storage needed)
+  persistence:
+    enabled: false
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# ============================================================================
+# Redis Configuration
+# ============================================================================
+redis:
+  enabled: true
+  
+  auth:
+    enabled: false  # No auth in development
+  
+  # Use emptyDir for development
+  persistence:
+    enabled: false
+  
+  appendonly: "yes"
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+# ============================================================================
+# Database Migration Job
+# ============================================================================
+migration:
+  enabled: true
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# ============================================================================
+# Ingress Configuration
+# ============================================================================
+ingress:
+  enabled: false  # Use port-forward in development
+
+# ============================================================================
+# Development Features
+# ============================================================================
+serviceAccount:
+  create: true
+
+# Disabled for development
+networkPolicy:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: false
+
+metrics:
+  enabled: false
+

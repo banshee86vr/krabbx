@@ -1,0 +1,131 @@
+{{- if .Values.networkPolicy.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-frontend
+  labels:
+    {{- include "renovate-dashboard.frontend.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "renovate-dashboard.frontend.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    {{- toYaml .Values.networkPolicy.policyTypes | nindent 4 }}
+  ingress:
+    {{- toYaml .Values.networkPolicy.ingress | nindent 4 }}
+  egress:
+    # Allow DNS
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+    # Allow access to backend
+    - to:
+      - podSelector:
+          matchLabels:
+            {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 12 }}
+      ports:
+      - protocol: TCP
+        port: {{ .Values.backend.service.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-backend
+  labels:
+    {{- include "renovate-dashboard.backend.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    {{- toYaml .Values.networkPolicy.policyTypes | nindent 4 }}
+  ingress:
+    # Allow from frontend
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "renovate-dashboard.frontend.selectorLabels" . | nindent 12 }}
+      ports:
+      - protocol: TCP
+        port: {{ .Values.backend.service.port }}
+    {{- toYaml .Values.networkPolicy.ingress | nindent 4 }}
+  egress:
+    # Allow DNS
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+    # Allow access to PostgreSQL
+    - to:
+      - podSelector:
+          matchLabels:
+            {{- include "renovate-dashboard.postgresql.selectorLabels" . | nindent 12 }}
+      ports:
+      - protocol: TCP
+        port: {{ .Values.postgresql.service.port }}
+    # Allow access to Redis
+    - to:
+      - podSelector:
+          matchLabels:
+            {{- include "renovate-dashboard.redis.selectorLabels" . | nindent 12 }}
+      ports:
+      - protocol: TCP
+        port: {{ .Values.redis.service.port }}
+    # Allow external access (GitHub API, SMTP, etc.)
+    - to:
+      - namespaceSelector: {}
+    {{- toYaml .Values.networkPolicy.egress | nindent 4 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-postgresql
+  labels:
+    {{- include "renovate-dashboard.postgresql.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "renovate-dashboard.postgresql.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from backend
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 12 }}
+      ports:
+      - protocol: TCP
+        port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-redis
+  labels:
+    {{- include "renovate-dashboard.redis.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "renovate-dashboard.redis.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from backend
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 12 }}
+      ports:
+      - protocol: TCP
+        port: 6379
+{{- end }}
+

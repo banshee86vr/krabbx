@@ -1,0 +1,72 @@
+{{- if and .Values.migration.enabled .Values.postgresql.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-migration
+  labels:
+    {{- include "renovate-dashboard.backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+  {{- if .Values.migration.hook.enabled }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": {{ .Values.migration.hook.weight | quote }}
+    "helm.sh/hook-delete-policy": {{ .Values.migration.hook.deletePolicy }}
+  {{- end }}
+spec:
+  backoffLimit: {{ .Values.migration.backoffLimit }}
+  {{- if .Values.migration.ttlSecondsAfterFinished }}
+  ttlSecondsAfterFinished: {{ .Values.migration.ttlSecondsAfterFinished }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: OnFailure
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "renovate-dashboard.serviceAccountName" . }}
+      containers:
+        - name: migration
+          image: {{ include "renovate-dashboard.backend.image" . }}
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              echo "Running database migrations..."
+              cd /workspace/backend
+              pnpm exec prisma migrate deploy
+              echo "Migrations completed successfully"
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.postgresql.secretName" . }}
+                  key: {{ .Values.postgresql.auth.existingSecretKeys.username | default "postgres-user" }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.postgresql.secretName" . }}
+                  key: {{ .Values.postgresql.auth.existingSecretKeys.password | default "postgres-password" }}
+            - name: DATABASE_URL
+              value: {{ include "renovate-dashboard.databaseUrl" . | quote }}
+          resources:
+            {{- toYaml .Values.migration.resources | nindent 12 }}
+      {{- with .Values.migration.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.migration.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.migration.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+

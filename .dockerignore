@@ -1,0 +1,60 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+**/dist
+build
+**/build
+
+# Development files
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Documentation (not needed in container)
+docs
+*.md
+!README.md
+
+# CI/CD
+.github
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Frontend specific (when building backend)
+frontend/node_modules
+frontend/dist
+
+# Backend specific (when building frontend)
+backend/node_modules
+backend/dist
+
+# Database
+*.db
+*.sqlite
+prisma/migrations
+

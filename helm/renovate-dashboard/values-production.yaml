@@ -1,0 +1,260 @@
+# Production values for renovate-dashboard
+# This is an example configuration for production deployments
+
+# Global settings
+global:
+  storageClass: "fast-ssd"  # Use your cluster's fast storage class
+  imagePullSecrets:
+    - name: registry-credentials
+
+imageRegistry: "registry.example.com"
+
+# ============================================================================
+# Frontend Configuration
+# ============================================================================
+frontend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-frontend
+    pullPolicy: Always
+    tag: "1.0.0"  # Use specific version tag
+  
+  replicaCount: 3
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  # Anti-affinity to spread pods across nodes
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - frontend
+            topologyKey: kubernetes.io/hostname
+
+# ============================================================================
+# Backend Configuration
+# ============================================================================
+backend:
+  enabled: true
+  image:
+    repository: renovate-dashboard-backend
+    pullPolicy: Always
+    tag: "1.0.0"  # Use specific version tag
+  
+  replicaCount: 3
+  
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  env:
+    nodeEnv: production
+    port: 3001
+    logLevel: INFO
+    storageMode: database
+    scanIntervalMinutes: 60
+    maxScanLimit: 0
+    useRedis: true
+  
+  # IMPORTANT: Set these values or use existingSecret
+  github:
+    token: ""  # Set via --set or use existingSecret
+    org: "your-organization"
+    authClientId: ""  # Set via --set or use existingSecret
+    authClientSecret: ""  # Set via --set or use existingSecret
+    # Recommended: Use existing secret
+    # existingSecret: renovate-github-credentials
+  
+  session:
+    secret: ""  # Set via --set or use existingSecret (will auto-generate if empty)
+    # Recommended: Use existing secret
+    # existingSecret: renovate-session-secret
+  
+  # Optional: Teams notifications
+  teams:
+    webhookUrl: ""  # Set if using Teams
+    # existingSecret: renovate-teams-secret
+  
+  # Optional: Email notifications
+  email:
+    enabled: false
+    host: "smtp.gmail.com"
+    port: 587
+    secure: false
+    user: ""
+    password: ""
+    fromEmail: "renovate@example.com"
+    # existingSecret: renovate-email-secret
+  
+  # Anti-affinity to spread pods across nodes
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/component
+                  operator: In
+                  values:
+                    - backend
+            topologyKey: kubernetes.io/hostname
+
+# ============================================================================
+# PostgreSQL Configuration
+# ============================================================================
+postgresql:
+  enabled: true
+  
+  auth:
+    username: postgres
+    password: ""  # Set via --set or use existingSecret (will auto-generate if empty)
+    database: renovate_dashboard
+    # Recommended: Use existing secret
+    # existingSecret: renovate-postgresql-secret
+  
+  persistence:
+    enabled: true
+    storageClass: "fast-ssd"
+    size: 50Gi  # Adjust based on your needs
+  
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+  
+  # Backup-friendly node affinity
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: node-role
+                operator: In
+                values:
+                  - database
+
+# ============================================================================
+# Redis Configuration
+# ============================================================================
+redis:
+  enabled: true
+  
+  auth:
+    enabled: true
+    password: ""  # Set via --set or use existingSecret (will auto-generate if empty)
+    # Recommended: Use existing secret
+    # existingSecret: renovate-redis-secret
+  
+  persistence:
+    enabled: true
+    storageClass: "fast-ssd"
+    size: 10Gi
+  
+  appendonly: "yes"
+  
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi
+
+# ============================================================================
+# Ingress Configuration
+# ============================================================================
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+  
+  hosts:
+    - host: renovate-dashboard.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /socket.io
+          pathType: Prefix
+          service: backend
+  
+  tls:
+    - secretName: renovate-dashboard-tls
+      hosts:
+        - renovate-dashboard.example.com
+
+# ============================================================================
+# High Availability Features
+# ============================================================================
+serviceAccount:
+  create: true
+  annotations: {}
+
+networkPolicy:
+  enabled: true
+
+podDisruptionBudget:
+  enabled: true
+  frontend:
+    minAvailable: 2
+  backend:
+    minAvailable: 2
+
+# ============================================================================
+# Monitoring (if using Prometheus)
+# ============================================================================
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+    interval: 30s
+    scrapeTimeout: 10s
+    labels:
+      prometheus: kube-prometheus
+

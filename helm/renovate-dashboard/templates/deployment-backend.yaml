@@ -1,0 +1,238 @@
+{{- if .Values.backend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-backend
+  labels:
+    {{- include "renovate-dashboard.backend.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.backend.autoscaling.enabled }}
+  replicas: {{ .Values.backend.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.backend.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "renovate-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.backend.podSecurityContext | nindent 8 }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: {{ include "renovate-dashboard.backend.image" . }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.backend.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.backend.env.port }}
+              protocol: TCP
+          env:
+            # ConfigMap environment variables
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: NODE_ENV
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: PORT
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: LOG_LEVEL
+            - name: STORAGE_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: STORAGE_MODE
+            - name: SCAN_INTERVAL_MINUTES
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: SCAN_INTERVAL_MINUTES
+            - name: MAX_SCAN_LIMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: MAX_SCAN_LIMIT
+            - name: USE_REDIS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: USE_REDIS
+            - name: GITHUB_ORG
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: GITHUB_ORG
+            - name: FRONTEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: FRONTEND_URL
+            {{- if .Values.backend.scanRepos }}
+            - name: SCAN_REPOS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: SCAN_REPOS
+            {{- end }}
+            # Database credentials
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.postgresql.secretName" . }}
+                  key: {{ .Values.postgresql.auth.existingSecretKeys.username | default "postgres-user" }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.postgresql.secretName" . }}
+                  key: {{ .Values.postgresql.auth.existingSecretKeys.password | default "postgres-password" }}
+            - name: DATABASE_URL
+              value: {{ include "renovate-dashboard.databaseUrl" . | quote }}
+            # Redis
+            {{- if .Values.redis.enabled }}
+            {{- if .Values.redis.auth.enabled }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.redis.secretName" . }}
+                  key: {{ .Values.redis.auth.existingSecretKey | default "redis-password" }}
+            {{- end }}
+            - name: REDIS_URL
+              value: {{ include "renovate-dashboard.redisUrl" . | quote }}
+            {{- end }}
+            # GitHub credentials
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.github.secretName" . }}
+                  key: {{ .Values.backend.github.existingSecretKeys.token | default "github-token" }}
+            - name: GITHUB_AUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.github.secretName" . }}
+                  key: {{ .Values.backend.github.existingSecretKeys.authClientId | default "github-auth-client-id" }}
+            - name: GITHUB_AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.github.secretName" . }}
+                  key: {{ .Values.backend.github.existingSecretKeys.authClientSecret | default "github-auth-client-secret" }}
+            # Session secret
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.session.secretName" . }}
+                  key: {{ .Values.backend.session.existingSecretKey | default "session-secret" }}
+            # Teams webhook (optional)
+            {{- if .Values.backend.teams.webhookUrl }}
+            - name: TEAMS_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.teams.existingSecret | default (printf "%s-teams" (include "renovate-dashboard.fullname" .)) }}
+                  key: {{ .Values.backend.teams.existingSecretKey | default "teams-webhook-url" }}
+            {{- end }}
+            # Email/SMTP (optional)
+            {{- if .Values.backend.email.enabled }}
+            - name: SMTP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: SMTP_PORT
+            - name: SMTP_SECURE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: SMTP_SECURE
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.email.existingSecret | default (printf "%s-email" (include "renovate-dashboard.fullname" .)) }}
+                  key: {{ .Values.backend.email.existingSecretKeys.user | default "smtp-user" }}
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.email.existingSecret | default (printf "%s-email" (include "renovate-dashboard.fullname" .)) }}
+                  key: {{ .Values.backend.email.existingSecretKeys.password | default "smtp-password" }}
+            - name: NOTIFICATION_FROM_EMAIL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: NOTIFICATION_FROM_EMAIL
+            {{- end }}
+            # Extra environment variables
+            {{- if .Values.extraEnvVars }}
+            {{- toYaml .Values.extraEnvVars | nindent 12 }}
+            {{- end }}
+          {{- if or .Values.extraEnvVarsCM .Values.extraEnvVarsSecret }}
+          envFrom:
+            {{- if .Values.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ .Values.extraEnvVarsCM }}
+            {{- end }}
+            {{- if .Values.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ .Values.extraEnvVarsSecret }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.backend.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.backend.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.backend.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.backend.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- if .Values.extraVolumeMounts }}
+          volumeMounts:
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+          {{- end }}
+        {{- if .Values.sidecars }}
+        {{- toYaml .Values.sidecars | nindent 8 }}
+        {{- end }}
+      {{- if .Values.extraVolumes }}
+      volumes:
+        {{- toYaml .Values.extraVolumes | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.backend.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+

@@ -1,0 +1,18 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-postgresql
+  labels:
+    {{- include "renovate-dashboard.postgresql.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.postgresql.service.type }}
+  ports:
+    - port: {{ .Values.postgresql.service.port }}
+      targetPort: postgresql
+      protocol: TCP
+      name: postgresql
+  selector:
+    {{- include "renovate-dashboard.postgresql.selectorLabels" . | nindent 4 }}
+{{- end }}
+
