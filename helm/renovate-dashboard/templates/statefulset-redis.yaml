@@ -1,0 +1,123 @@
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-redis
+  labels:
+    {{- include "renovate-dashboard.redis.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "renovate-dashboard.fullname" . }}-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "renovate-dashboard.redis.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "renovate-dashboard.redis.selectorLabels" . | nindent 8 }}
+      {{- with .Values.redis.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "renovate-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.redis.podSecurityContext | nindent 8 }}
+      containers:
+        - name: redis
+          image: {{ include "renovate-dashboard.redis.image" . }}
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.redis.securityContext | nindent 12 }}
+          {{- if .Values.redis.auth.enabled }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "renovate-dashboard.redis.secretName" . }}
+                  key: {{ .Values.redis.auth.existingSecretKey | default "redis-password" }}
+          {{- end }}
+          command:
+            - redis-server
+          args:
+            {{- if .Values.redis.appendonly }}
+            - "--appendonly"
+            - {{ .Values.redis.appendonly | quote }}
+            {{- end }}
+            {{- if .Values.redis.auth.enabled }}
+            - "--requirepass"
+            - "$(REDIS_PASSWORD)"
+            {{- end }}
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+          {{- if .Values.redis.livenessProbe }}
+          livenessProbe:
+            {{- if .Values.redis.auth.enabled }}
+            exec:
+              command:
+                - sh
+                - -c
+                - redis-cli -a $REDIS_PASSWORD ping
+            {{- else }}
+            {{- toYaml .Values.redis.livenessProbe | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.redis.readinessProbe }}
+          readinessProbe:
+            {{- if .Values.redis.auth.enabled }}
+            exec:
+              command:
+                - sh
+                - -c
+                - redis-cli -a $REDIS_PASSWORD ping
+            {{- else }}
+            {{- toYaml .Values.redis.readinessProbe | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.redis.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      {{- with .Values.redis.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.redis.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- if .Values.redis.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        {{- with .Values.redis.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.redis.persistence.accessMode | quote }}
+        {{- if or .Values.redis.persistence.storageClass .Values.global.storageClass }}
+        storageClassName: {{ .Values.redis.persistence.storageClass | default .Values.global.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.redis.persistence.size | quote }}
+  {{- else }}
+      volumes:
+        - name: data
+          emptyDir: {}
+  {{- end }}
+{{- end }}
+

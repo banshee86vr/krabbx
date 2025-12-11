@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}
+  labels:
+    {{- include "renovate-dashboard.labels" . | nindent 4 }}
+{{- $targets := default "" .Values.backend.github.targets }}
+{{- $org := default "" .Values.backend.github.org }}
+{{- if and (eq $org "") (eq $targets "") }}
+{{- fail "backend.github.org or backend.github.targets is required" }}
+{{- end }}
+{{- $authEnabled := true }}
+{{- if hasKey .Values.backend.github "authEnabled" }}
+{{- $authEnabled = .Values.backend.github.authEnabled }}
+{{- end }}
+data:
+  NODE_ENV: {{ .Values.backend.env.nodeEnv | quote }}
+  PORT: {{ .Values.backend.env.port | quote }}
+  LOG_LEVEL: {{ .Values.backend.env.logLevel | quote }}
+  STORAGE_MODE: {{ .Values.backend.env.storageMode | quote }}
+  SCAN_INTERVAL_MINUTES: {{ .Values.backend.env.scanIntervalMinutes | quote }}
+  MAX_SCAN_LIMIT: {{ .Values.backend.env.maxScanLimit | quote }}
+  USE_REDIS: {{ .Values.backend.env.useRedis | quote }}
+  AUTH_ENABLED: {{ ternary "true" "false" $authEnabled | quote }}
+  FRONTEND_URL: {{ include "renovate-dashboard.frontendUrl" . | quote }}
+  GITHUB_TARGETS: {{ $targets | quote }}
+  {{- if ne $org "" }}
+  GITHUB_ORG: {{ $org | quote }}
+  {{- else }}
+  GITHUB_ORG: {{ trim (index (splitList "," $targets) 0) | quote }}
+  {{- end }}
+  GITHUB_AUTH_TEAM_SLUG: {{ default "" .Values.backend.github.authTeamSlug | quote }}
+  TRUST_PROXY: {{ .Values.backend.security.trustProxy | quote }}
+  ALLOW_INSECURE_NOAUTH: {{ ternary "true" "false" .Values.backend.security.allowInsecureNoauth | quote }}
+  {{- if .Values.backend.security.sessionCookieSecure }}
+  SESSION_COOKIE_SECURE: {{ .Values.backend.security.sessionCookieSecure | quote }}
+  {{- end }}
+  {{- if .Values.backend.scanRepos }}
+  SCAN_REPOS: {{ .Values.backend.scanRepos | quote }}
+  {{- end }}
