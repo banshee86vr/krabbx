@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^21.1.1",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.6.0",
     "@socket.io/redis-adapter": "^8.3.0",
     "connect-redis": "^9.0.0",
     "cookie-parser": "^1.4.7",
