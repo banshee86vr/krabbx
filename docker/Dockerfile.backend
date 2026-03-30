@@ -9,14 +9,14 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Copy backend package files
+# Copy backend package files and Prisma schema so postinstall can generate the client
 COPY backend/package.json ./backend/
+COPY backend/prisma ./backend/prisma
 
 # Install dependencies (including dev deps for build)
 RUN pnpm install --frozen-lockfile
 
-# Copy prisma schema and backend source
-COPY backend/prisma ./backend/prisma
+# Copy backend source
 COPY backend/tsconfig.json ./backend/
 COPY backend/src ./backend/src
 

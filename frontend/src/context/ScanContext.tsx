@@ -71,7 +71,13 @@ export function ScanProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    void syncScanStatus();
+    const timeout = window.setTimeout(() => {
+      void syncScanStatus();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
   }, [syncScanStatus]);
 
   useEffect(() => {
