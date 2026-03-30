@@ -1,0 +1,73 @@
+name: Update lockfile
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/package.json"
+
+permissions:
+  contents: write
+
+jobs:
+  update-lockfile:
+    name: Sync pnpm-lock.yaml
+    runs-on: ubuntu-latest
+    if: >-
+      github.actor == 'dependabot[bot]' ||
+      github.actor == 'renovate[bot]'
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Update lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Check for lockfile changes
+        id: diff
+        run: |
+          if git diff --quiet pnpm-lock.yaml; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Push verified commit via GitHub API
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.head_ref }}
+          REPO: ${{ github.repository }}
+        run: |
+          BLOB_SHA=$(base64 -w 0 pnpm-lock.yaml | \
+            jq -Rs '{"content": ., "encoding": "base64"}' | \
+            gh api "repos/$REPO/git/blobs" --method POST --input - --jq '.sha')
+
+          HEAD_SHA=$(gh api "repos/$REPO/git/ref/heads/$BRANCH" --jq '.object.sha')
+          BASE_TREE=$(gh api "repos/$REPO/git/commits/$HEAD_SHA" --jq '.tree.sha')
+
+          TREE_SHA=$(jq -n --arg base "$BASE_TREE" --arg blob "$BLOB_SHA" \
+            '{"base_tree":$base,"tree":[{"path":"pnpm-lock.yaml","mode":"100644","type":"blob","sha":$blob}]}' | \
+            gh api "repos/$REPO/git/trees" --method POST --input - --jq '.sha')
+
+          COMMIT_SHA=$(jq -n --arg tree "$TREE_SHA" --arg parent "$HEAD_SHA" \
+            '{"message":"chore: update pnpm-lock.yaml","tree":$tree,"parents":[$parent]}' | \
+            gh api "repos/$REPO/git/commits" --method POST --input - --jq '.sha')
+
+          jq -n --arg sha "$COMMIT_SHA" '{"sha":$sha}' | \
+            gh api "repos/$REPO/git/refs/heads/$BRANCH" --method PATCH --input -
