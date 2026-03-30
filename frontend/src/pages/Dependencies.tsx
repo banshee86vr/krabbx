@@ -11,14 +11,13 @@ import {
 	Zap,
 	Code,
 	Container,
-	Github,
+	GitBranch,
 	Box,
 	Settings2,
 	Globe,
 } from "lucide-react";
 import {
 	dependencyApi,
-	repositoryApi,
 	type DependencyFilters,
 } from "../services/api";
 import {
@@ -31,13 +30,14 @@ import {
 import { useSocket } from "../context/SocketContext";
 import { Select } from "../components/Select";
 import { useScan } from "../context/ScanContext";
+import { useOrganizationScan } from "../hooks/useOrganizationScan";
 
 const iconMap: Record<string, React.ReactNode> = {
 	Box: <Box className="w-3 h-3" />,
 	Settings2: <Settings2 className="w-3 h-3" />,
 	Package: <Package className="w-3 h-3" />,
 	Globe: <Globe className="w-3 h-3" />,
-	Github: <Github className="w-3 h-3" />,
+	GitBranch: <GitBranch className="w-3 h-3" />,
 	Container: <Container className="w-3 h-3" />,
 	Code: <Code className="w-3 h-3" />,
 	Zap: <Zap className="w-3 h-3" />,
@@ -49,6 +49,7 @@ export function Dependencies() {
 	const queryClient = useQueryClient();
 	const { socket } = useSocket();
 	const { scan } = useScan();
+	const scanMutation = useOrganizationScan();
 
 	const filters: DependencyFilters = {
 		page: parseInt(searchParams.get("page") || "1"),
@@ -82,14 +83,6 @@ export function Dependencies() {
 		!filters.search &&
 		filters.isOutdated === "all" &&
 		filters.updateType === "all";
-
-	const handleStartScan = async () => {
-		try {
-			await repositoryApi.scan();
-		} catch (error) {
-			console.error("Failed to start scan:", error);
-		}
-	};
 
 	// Listen for real-time WebSocket updates
 	useEffect(() => {
@@ -156,11 +149,11 @@ export function Dependencies() {
 						</div>
 						<button
 							type="button"
-							onClick={handleStartScan}
-							disabled={scan.isScanning}
+							onClick={() => scanMutation.mutate()}
+							disabled={scanMutation.isPending || scan.isScanning}
 							className={cn(
 								"px-6 py-3 text-lg font-semibold shadow-lg transition-all",
-								scan.isScanning
+								scanMutation.isPending || scan.isScanning
 									? "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
 									: "btn-primary hover:shadow-xl",
 							)}
@@ -168,10 +161,10 @@ export function Dependencies() {
 							<Zap
 								className={cn(
 									"w-5 h-5 mr-2 inline",
-									scan.isScanning && "animate-pulse",
+									(scanMutation.isPending || scan.isScanning) && "animate-pulse",
 								)}
 							/>
-							{scan.isScanning ? "Scanning..." : "Start Scan"}
+							{scanMutation.isPending || scan.isScanning ? "Scanning..." : "Start Scan"}
 						</button>
 					</div>
 				</div>

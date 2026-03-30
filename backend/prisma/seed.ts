@@ -1,6 +1,7 @@
-import { PrismaClient, NotificationType, NotificationTrigger } from '@prisma/client';
+import { NotificationType, NotificationTrigger } from '../src/generated/prisma/client.js';
+import { createPrismaClient } from '../src/lib/prisma.js';
 
-const prisma = new PrismaClient();
+const prisma = createPrismaClient();
 
 async function main() {
   console.log('Seeding database...');

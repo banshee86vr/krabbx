@@ -119,7 +119,7 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
 router.get('/status', (req: Request, res: Response) => {
   if (req.session.user) {
     // Don't send the access token to the frontend
-    const { accessToken, ...userWithoutToken } = req.session.user;
+    const { accessToken: _accessToken, ...userWithoutToken } = req.session.user;
     res.json({ authenticated: true, user: userWithoutToken });
   } else {
     res.json({ authenticated: false, user: null });

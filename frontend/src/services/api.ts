@@ -93,6 +93,17 @@ export const repositoryApi = {
     return fetchApi<PaginatedResponse<Repository>>(`/repositories?${params}`);
   },
   get: (id: string) => fetchApi<Repository>(`/repositories/${id}`),
+  getScanStatus: () => fetchApi<{
+    isScanning: boolean;
+    scannedCount: number;
+    totalToScan: number;
+    progress: number;
+    rateLimited: boolean;
+    totalAvailable: number;
+    startedAt: string | null;
+    completedAt: string | null;
+    error: string | null;
+  }>('/repositories/scan/status'),
   getStats: () => fetchApi<{
     totalRepositories: number;
     adoptedRepositories: number;

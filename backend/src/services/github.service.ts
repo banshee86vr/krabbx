@@ -1,9 +1,5 @@
 import { Octokit } from '@octokit/rest';
 import { config } from '../config/env.js';
-import { logger } from '../lib/logger.js';
-import type { DependencyType, UpdateType } from '../storage/types.js';
-
-const log = logger.child('GitHubService');
 
 interface GitHubRepository {
   id: number;
@@ -770,30 +766,25 @@ export class GitHubService {
         }
 
         // Check for digest or pin first (these take precedence)
-        let updateType = '';
-        if (pr.title.toLowerCase().includes('digest')) {
-          updateType = 'digest';
-        } else if (pr.title.toLowerCase().includes('pin')) {
-          updateType = 'pin';
-        } else {
-          // Check labels for explicit update type
-          if (pr.labels.some(l => l.name.includes('major'))) {
-            updateType = 'major';
-          } else if (pr.labels.some(l => l.name.includes('minor'))) {
-            updateType = 'minor';
-          } else if (pr.labels.some(l => l.name.includes('patch'))) {
-            updateType = 'patch';
-          } else {
-            // Extract versions and compare them
-            const versions = this.extractVersionsFromPRBody(pr, packageName);
-            if (versions.current !== 'unknown' && versions.new !== 'unknown') {
-              updateType = this.compareVersions(versions.current, versions.new);
-            } else {
-              // Fallback to label detection or default to minor
-              updateType = 'minor';
-            }
-          }
-        }
+        const updateType = pr.title.toLowerCase().includes('digest')
+          ? 'digest'
+          : pr.title.toLowerCase().includes('pin')
+            ? 'pin'
+            : pr.labels.some(l => l.name.includes('major'))
+              ? 'major'
+              : pr.labels.some(l => l.name.includes('minor'))
+                ? 'minor'
+                : pr.labels.some(l => l.name.includes('patch'))
+                  ? 'patch'
+                  : (() => {
+                      const versions = this.extractVersionsFromPRBody(pr, packageName);
+                      if (versions.current !== 'unknown' && versions.new !== 'unknown') {
+                        return this.compareVersions(versions.current, versions.new);
+                      }
+
+                      // Fallback to label detection or default to minor
+                      return 'minor';
+                    })();
 
         // Determine package manager from labels or package name
         let packageManager = 'npm';

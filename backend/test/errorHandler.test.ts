@@ -73,7 +73,7 @@ describe('errorHandler', () => {
     expect(json).toHaveBeenCalledWith({
       status: 'error',
       message: 'Validation error',
-      errors: error.errors,
+      errors: error.issues,
     });
   });
 

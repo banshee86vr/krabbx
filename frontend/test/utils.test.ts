@@ -50,7 +50,7 @@ describe('dependency presentation helpers', () => {
   it('maps known dependency types to stable badge, label, and icon values', () => {
     expect(getDependencyTypeColor('docker_image')).toBe('badge-success');
     expect(getDependencyTypeLabel('terraform_provider')).toBe('Terraform Provider');
-    expect(getDependencyTypeIcon('github_action')).toBe('Github');
+    expect(getDependencyTypeIcon('github_action')).toBe('GitBranch');
   });
 
   it('uses fallback values for unknown dependency types', () => {

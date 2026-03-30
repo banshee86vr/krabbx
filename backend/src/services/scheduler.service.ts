@@ -1,4 +1,4 @@
-import cron from 'node-cron';
+import cron, { type ScheduledTask } from 'node-cron';
 import { Server } from 'socket.io';
 import { RenovateService } from './renovate.service.js';
 import { NotificationService } from './notification.service.js';
@@ -10,7 +10,7 @@ export class SchedulerService {
   private static instance: SchedulerService;
   private renovateService: RenovateService;
   private notificationService: NotificationService;
-  private scanJob: cron.ScheduledTask | null = null;
+  private scanJob: ScheduledTask | null = null;
 
   private constructor(io?: Server) {
     this.renovateService = new RenovateService(io);

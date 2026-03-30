@@ -2,7 +2,7 @@ import { useState, useId, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Settings as SettingsIcon,
-  Github,
+  GitBranch,
   Clock,
   AlertCircle,
   CheckCircle,
@@ -10,16 +10,18 @@ import {
   Database,
   Server,
 } from 'lucide-react';
-import { settingsApi, repositoryApi, dashboardApi } from '../services/api';
+import { settingsApi, dashboardApi } from '../services/api';
 import { cn, formatDateTime } from '../lib/utils';
 import { useScan } from '../context/ScanContext';
 import { useSocket } from '../context/SocketContext';
+import { useOrganizationScan } from '../hooks/useOrganizationScan';
 
 export function Settings() {
   const queryClient = useQueryClient();
   const maxScanLimitId = useId();
   const { scan } = useScan();
   const { socket } = useSocket();
+  const scanMutation = useOrganizationScan();
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ['settings'],
@@ -41,14 +43,6 @@ export function Settings() {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       setScanInterval(null);
       setMaxScanLimit(null);
-    },
-  });
-
-  const scanMutation = useMutation({
-    mutationFn: repositoryApi.scan,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['repositories'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 
@@ -87,7 +81,7 @@ export function Settings() {
       <div className="card">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <Github className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            <GitBranch className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">GitHub Integration</h2>
           </div>
         </div>

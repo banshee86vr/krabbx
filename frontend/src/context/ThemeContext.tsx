@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
@@ -20,24 +20,25 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return (localStorage.getItem('theme') as Theme) || 'system';
   });
 
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    let effectiveTheme = theme;
-
-    if (theme === 'system') {
-      effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const isDark = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return false;
     }
 
-    const isDarkMode = effectiveTheme === 'dark';
-    setIsDark(isDarkMode);
+    if (theme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
 
-    if (isDarkMode) {
+    return theme === 'dark';
+  }, [theme]);
+
+  useEffect(() => {
+    if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-  }, [theme]);
+  }, [isDark]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

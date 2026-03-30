@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '../generated/prisma/client.js';
+import { getPrismaClient } from '../lib/prisma.js';
 import type {
   IStorage,
   Repository,
@@ -20,9 +21,7 @@ export class DatabaseStorage implements IStorage {
   private prisma: PrismaClient;
 
   constructor() {
-    this.prisma = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-    });
+    this.prisma = getPrismaClient();
   }
 
   async disconnect(): Promise<void> {

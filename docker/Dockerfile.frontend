@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /workspace
 
@@ -22,7 +22,7 @@ COPY frontend/ ./frontend/
 RUN cd frontend && pnpm run build
 
 # Production stage - using minimal nginx
-FROM nginx:1.25-alpine
+FROM nginx:1.29-alpine
 
 # Create non-root user for nginx (or use existing nginx user)
 # nginx:alpine already has nginx user/group, so we'll just use it

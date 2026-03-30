@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Bell, RefreshCw, Menu, X, Moon, Sun, LogOut, User } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNotifications } from '../../context/NotificationContext';
 import { useSocket } from '../../context/SocketContext';
 import { useScan } from '../../context/ScanContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
-import { repositoryApi } from '../../services/api';
 import { cn, formatRelativeTime } from '../../lib/utils';
+import { useOrganizationScan } from '../../hooks/useOrganizationScan';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Bot, LayoutDashboard, GitBranch, Package, Settings } from 'lucide-react';
 
@@ -29,20 +28,12 @@ export function Header() {
   const { isDark, setTheme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const scanMutation = useOrganizationScan();
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
-
-  const scanMutation = useMutation({
-    mutationFn: repositoryApi.scan,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['repositories'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-    },
-  });
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-gray-200 isolate dark:bg-slate-900/50 dark:border-secondary-500/30 dark:shadow-lg dark:shadow-secondary-500/5 dark:backdrop-blur-sm">

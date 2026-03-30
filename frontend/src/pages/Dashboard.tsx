@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   GitBranch,
@@ -39,6 +39,7 @@ export function Dashboard() {
   const { socket } = useSocket();
   const { scan } = useScan();
   const { isDark } = useTheme();
+  const wasScanningRef = useRef(scan.isScanning);
 
   // Theme-aware chart colors using project's primary/secondary palette
   const chartColors = {
@@ -98,7 +99,7 @@ export function Dashboard() {
         lastEntry: trends.dependencyTrends[trends.dependencyTrends.length - 1]
       });
     }
-  }, [trends?.dependencyTrends?.length]); // Only log when length changes
+  }, [trends?.dependencyTrends]); // Only log when trends change
 
   // Listen for real-time WebSocket updates
   useEffect(() => {
@@ -131,6 +132,27 @@ export function Dashboard() {
       socket.off('scan:complete', handleScanComplete);
     };
   }, [socket, queryClient]);
+
+  useEffect(() => {
+    const wasScanning = wasScanningRef.current;
+    wasScanningRef.current = scan.isScanning;
+
+    if (!wasScanning || scan.isScanning) {
+      return;
+    }
+
+    // Give the backend a brief moment to persist final scan results
+    const refreshTimeout = window.setTimeout(() => {
+      void queryClient.refetchQueries({
+        queryKey: ['dashboard'],
+        type: 'active',
+      });
+    }, 750);
+
+    return () => {
+      window.clearTimeout(refreshTimeout);
+    };
+  }, [scan.isScanning, queryClient]);
 
   // Show skeleton only on initial load, not on refetch
   if (isLoading) {

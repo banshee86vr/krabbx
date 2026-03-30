@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { repositoryApi } from '../services/api';
 import { useSocket } from './SocketContext';
 
 interface ScanProgress {
@@ -12,20 +13,80 @@ interface ScanProgress {
 
 interface ScanContextType {
   scan: ScanProgress;
+  startScan: () => void;
 }
 
 const ScanContext = createContext<ScanContextType | undefined>(undefined);
 
+const emptyScanState: ScanProgress = {
+  isScanning: false,
+  scannedCount: 0,
+  totalToScan: 0,
+  progress: 0,
+  rateLimited: false,
+  totalAvailable: 0,
+};
+
 export function ScanProvider({ children }: { children: React.ReactNode }) {
   const { socket } = useSocket();
-  const [scan, setScan] = useState<ScanProgress>({
-    isScanning: false,
-    scannedCount: 0,
-    totalToScan: 0,
-    progress: 0,
-    rateLimited: false,
-    totalAvailable: 0,
-  });
+  const [scan, setScan] = useState<ScanProgress>(emptyScanState);
+
+  const applyScanStatus = useCallback((status: Partial<ScanProgress>) => {
+    setScan((prev) => ({
+      ...prev,
+      ...status,
+    }));
+  }, []);
+
+  const resetScan = useCallback(() => {
+    setScan(emptyScanState);
+  }, []);
+
+  const startScan = useCallback(() => {
+    setScan((prev) => ({
+      ...prev,
+      isScanning: true,
+      scannedCount: 0,
+      totalToScan: prev.totalToScan,
+      progress: 0,
+      rateLimited: false,
+      totalAvailable: prev.totalAvailable,
+    }));
+  }, []);
+
+  const syncScanStatus = useCallback(async () => {
+    try {
+      const status = await repositoryApi.getScanStatus();
+      setScan({
+        isScanning: status.isScanning,
+        scannedCount: status.scannedCount,
+        totalToScan: status.totalToScan,
+        progress: status.progress,
+        rateLimited: status.rateLimited,
+        totalAvailable: status.totalAvailable,
+      });
+    } catch (error) {
+      console.error('[ScanContext] Failed to sync scan status', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    void syncScanStatus();
+  }, [syncScanStatus]);
+
+  useEffect(() => {
+    if (!scan.isScanning) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      void syncScanStatus();
+    }, 2000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [scan.isScanning, syncScanStatus]);
 
   useEffect(() => {
     if (!socket) return;
@@ -33,51 +94,38 @@ export function ScanProvider({ children }: { children: React.ReactNode }) {
     // Scan lifecycle events
     socket.on('scan:start', () => {
       console.log('[ScanContext] Scan started');
-      setScan((prev) => ({
-        ...prev,
-        isScanning: true,
-        scannedCount: 0,
-        progress: 0,
-      }));
+      startScan();
+      void syncScanStatus();
     });
 
     socket.on('scan:rate-limited', (data: { scanned: number; total: number; totalAvailable: number }) => {
       console.log('[ScanContext] Rate limited:', data);
-      setScan((prev) => ({
-        ...prev,
+      applyScanStatus({
         totalToScan: data.total,
         totalAvailable: data.totalAvailable,
         rateLimited: true,
-      }));
+      });
     });
 
     socket.on('repo:scanned', (data: { scannedCount: number; totalToScan: number; progress: number }) => {
       console.log('[ScanContext] Repo scanned - Progress:', data.progress);
-      setScan((prev) => ({
-        ...prev,
+      applyScanStatus({
+        isScanning: true,
         scannedCount: data.scannedCount,
         totalToScan: data.totalToScan,
         progress: data.progress,
-      }));
+      });
     });
 
     socket.on('scan:complete', () => {
       console.log('[ScanContext] Scan completed');
-      setScan((prev) => ({
-        ...prev,
+      applyScanStatus({
         isScanning: false,
         progress: 100,
-      }));
+      });
       // Reset after 2 seconds
-      setTimeout(() => {
-        setScan({
-          isScanning: false,
-          scannedCount: 0,
-          totalToScan: 0,
-          progress: 0,
-          rateLimited: false,
-          totalAvailable: 0,
-        });
+      window.setTimeout(() => {
+        resetScan();
       }, 2000);
     });
 
@@ -87,9 +135,9 @@ export function ScanProvider({ children }: { children: React.ReactNode }) {
       socket.off('repo:scanned');
       socket.off('scan:complete');
     };
-  }, [socket]);
+  }, [applyScanStatus, resetScan, socket, startScan, syncScanStatus]);
 
-  return <ScanContext.Provider value={{ scan }}>{children}</ScanContext.Provider>;
+  return <ScanContext.Provider value={{ scan, startScan }}>{children}</ScanContext.Provider>;
 }
 
 export function useScan() {

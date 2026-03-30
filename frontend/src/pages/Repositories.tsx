@@ -18,6 +18,7 @@ import { useScan } from "../context/ScanContext";
 import { useSocket } from "../context/SocketContext";
 import { AvatarGroup } from "../components/Avatar";
 import { Select } from "../components/Select";
+import { useOrganizationScan } from "../hooks/useOrganizationScan";
 
 export function Repositories() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +26,7 @@ export function Repositories() {
 	const queryClient = useQueryClient();
 	const { scan } = useScan();
 	const { socket } = useSocket();
+	const scanMutation = useOrganizationScan();
 
 	const filters: RepositoryFilters = {
 		page: parseInt(searchParams.get("page") || "1"),
@@ -122,14 +124,6 @@ export function Repositories() {
 		filters.adopted === "all" &&
 		filters.hasOutdated === "all";
 
-	const handleStartScan = async () => {
-		try {
-			await repositoryApi.scan();
-		} catch (error) {
-			console.error("Failed to start scan:", error);
-		}
-	};
-
 	return (
 		<div className="space-y-6 relative">
 			{/* Empty State Overlay - No data in database */}
@@ -148,11 +142,11 @@ export function Repositories() {
 						</div>
 						<button
 							type="button"
-							onClick={handleStartScan}
-							disabled={scan.isScanning}
+							onClick={() => scanMutation.mutate()}
+							disabled={scanMutation.isPending || scan.isScanning}
 							className={cn(
 								"px-6 py-3 text-lg font-semibold shadow-lg transition-all",
-								scan.isScanning
+								scanMutation.isPending || scan.isScanning
 									? "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
 									: "btn-primary hover:shadow-xl",
 							)}
@@ -160,10 +154,10 @@ export function Repositories() {
 							<Zap
 								className={cn(
 									"w-5 h-5 mr-2 inline",
-									scan.isScanning && "animate-pulse",
+									(scanMutation.isPending || scan.isScanning) && "animate-pulse",
 								)}
 							/>
-							{scan.isScanning ? "Scanning..." : "Start Scan"}
+							{scanMutation.isPending || scan.isScanning ? "Scanning..." : "Start Scan"}
 						</button>
 					</div>
 				</div>

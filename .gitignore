@@ -56,6 +56,7 @@ Thumbs.db
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+backend/src/generated/
 
 # Misc
 *.tsbuildinfo

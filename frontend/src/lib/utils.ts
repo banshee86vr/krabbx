@@ -325,7 +325,7 @@ export function getDependencyTypeIcon(dependencyType: string): string {
     case 'github_action':
     case 'github_releases':
     case 'github_tags':
-      return 'Github';
+      return 'GitBranch';
     case 'circleci':
     case 'azure_pipelines':
     case 'gitlab_ci':
@@ -351,7 +351,7 @@ export function getDependencyTypeIcon(dependencyType: string): string {
     case 'action':
       return 'Code';
     case 'workflow':
-      return 'Github';
+      return 'GitBranch';
     case 'package':
     default:
       return 'Package';

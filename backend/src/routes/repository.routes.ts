@@ -2,7 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { z } from 'zod';
 
 import { AppError } from '../middleware/errorHandler.js';
-import { RenovateService } from '../services/renovate.service.js';
+import { getOrganizationScanStatus, RenovateService } from '../services/renovate.service.js';
 import { githubService } from '../services/github.service.js';
 import { getStorage } from '../storage/index.js';
 import { config } from '../config/env.js';
@@ -80,6 +80,11 @@ router.get('/stats', async (_req: Request, res: Response, next: NextFunction) =>
   }
 });
 
+// GET /api/repositories/scan/status - Get current organization scan status
+router.get('/scan/status', (_req: Request, res: Response) => {
+  res.json(getOrganizationScanStatus());
+});
+
 // GET /api/repositories/:id - Get repository details
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -112,14 +117,22 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
 // POST /api/repositories/scan - Trigger organization scan
 router.post('/scan', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (getOrganizationScanStatus().isScanning) {
+      res.status(202).json({
+        message: 'Scan already running',
+        status: 'running',
+      });
+      return;
+    }
+
     const io = req.app.get('io');
     const renovateService = new RenovateService(io);
 
     // Start scan in background
-    res.json({ message: 'Scan started', status: 'running' });
+    res.status(202).json({ message: 'Scan started', status: 'running' });
 
     // Run scan asynchronously
-    renovateService.scanOrganization().then(async (results) => {
+    renovateService.scanOrganization().then(async () => {
       // Update last scan time after successful scan
       const storage = getStorage();
       const settings = await storage.getAppSettings();
@@ -132,6 +145,7 @@ router.post('/scan', async (req: Request, res: Response, next: NextFunction) => 
     }).catch(error => {
       logger.error('Organization scan failed', error);
     });
+    return;
   } catch (error) {
     next(error);
   }

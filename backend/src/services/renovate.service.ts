@@ -14,6 +14,47 @@ interface ScanResult {
   openPRs: number;
 }
 
+export interface OrganizationScanStatus {
+  isScanning: boolean;
+  scannedCount: number;
+  totalToScan: number;
+  progress: number;
+  rateLimited: boolean;
+  totalAvailable: number;
+  startedAt: string | null;
+  completedAt: string | null;
+  error: string | null;
+}
+
+const defaultOrganizationScanStatus = (): OrganizationScanStatus => ({
+  isScanning: false,
+  scannedCount: 0,
+  totalToScan: 0,
+  progress: 0,
+  rateLimited: false,
+  totalAvailable: 0,
+  startedAt: null,
+  completedAt: null,
+  error: null,
+});
+
+let organizationScanStatus = defaultOrganizationScanStatus();
+
+function updateOrganizationScanStatus(
+  updates: Partial<OrganizationScanStatus>
+): OrganizationScanStatus {
+  organizationScanStatus = {
+    ...organizationScanStatus,
+    ...updates,
+  };
+
+  return organizationScanStatus;
+}
+
+export function getOrganizationScanStatus(): OrganizationScanStatus {
+  return organizationScanStatus;
+}
+
 export class RenovateService {
   constructor(private io?: Server) {}
 
@@ -23,9 +64,15 @@ export class RenovateService {
     const results: ScanResult[] = [];
     log.info('Starting organization scan');
 
+    updateOrganizationScanStatus({
+      ...defaultOrganizationScanStatus(),
+      isScanning: true,
+      startedAt: new Date().toISOString(),
+    });
+
     // Emit scan start event
     this.io?.emit('scan:start', {
-      timestamp: new Date().toISOString(),
+      ...getOrganizationScanStatus(),
     });
 
     try {
@@ -73,6 +120,12 @@ export class RenovateService {
         }
       }
 
+      updateOrganizationScanStatus({
+        totalToScan: reposToScan.length,
+        totalAvailable: allRepos.length,
+        rateLimited: reposToScan.length < allRepos.length,
+      });
+
       let scannedCount = 0;
       for (const repo of reposToScan) {
         if (repo.archived) {
@@ -88,11 +141,22 @@ export class RenovateService {
             scannedCount++;
 
             // Emit progress event for each scanned repo
+            const progress = reposToScan.length > 0
+              ? Math.round((scannedCount / reposToScan.length) * 100)
+              : 100;
+
+            updateOrganizationScanStatus({
+              scannedCount,
+              totalToScan: reposToScan.length,
+              totalAvailable: allRepos.length,
+              progress,
+            });
+
             this.io?.emit('repo:scanned', {
               repositoryId: result.repositoryId,
               scannedCount,
               totalToScan: reposToScan.length,
-              progress: Math.round((scannedCount / reposToScan.length) * 100),
+              progress,
               timestamp: new Date().toISOString(),
             });
           }
@@ -161,7 +225,16 @@ export class RenovateService {
       }
     } catch (error) {
       log.error('Organization scan failed', error);
+      updateOrganizationScanStatus({
+        error: error instanceof Error ? error.message : 'Organization scan failed',
+      });
     }
+
+    updateOrganizationScanStatus({
+      isScanning: false,
+      progress: results.length > 0 || organizationScanStatus.totalToScan === 0 ? 100 : organizationScanStatus.progress,
+      completedAt: new Date().toISOString(),
+    });
 
     // Emit scan complete event
     this.io?.emit('scan:complete', {
@@ -178,7 +251,6 @@ export class RenovateService {
 
   async scanRepository(repoName: string): Promise<ScanResult | null> {
     const storage = getStorage();
-    const startTime = Date.now();
 
     // Get repo from GitHub
     const repos = await githubService.getOrganizationRepositories();

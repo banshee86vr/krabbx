@@ -1,19 +1,13 @@
-import { Github, Bot, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { GitBranch, Bot, Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 export function Login() {
   const [searchParams] = useSearchParams();
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  useEffect(() => {
-    // Check if user came from unauthorized redirect
-    const reason = searchParams.get('reason');
-    if (reason === 'team') {
-      setError('You do not have access to this application. Please contact your administrator.');
-    }
-  }, [searchParams]);
+  const error = searchParams.get('reason') === 'team'
+    ? 'You do not have access to this application. Please contact your administrator.'
+    : null;
   
   const handleLogin = () => {
     setIsLoading(true);
@@ -86,7 +80,7 @@ export function Login() {
               </>
             ) : (
               <>
-                <Github className="w-5 h-5" />
+                <GitBranch className="w-5 h-5" />
                 Sign in with GitHub
               </>
             )}

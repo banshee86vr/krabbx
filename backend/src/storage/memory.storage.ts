@@ -101,7 +101,7 @@ export class MemoryStorage implements IStorage {
   }
 
   async upsertRepository(data: Partial<Repository> & { githubId: number }): Promise<Repository> {
-    let existing = await this.getRepositoryByGithubId(data.githubId);
+    const existing = await this.getRepositoryByGithubId(data.githubId);
 
     if (existing) {
       const updated: Repository = {
