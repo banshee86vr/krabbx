@@ -4,7 +4,7 @@ FROM node:24-alpine AS builder
 WORKDIR /workspace
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm@10
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -31,7 +31,7 @@ WORKDIR /workspace
 
 # Install runtime dependencies
 RUN apk add --no-cache openssl wget && \
-    corepack enable && corepack prepare pnpm@latest --activate
+    npm install -g pnpm@10
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

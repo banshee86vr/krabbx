@@ -40,7 +40,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -51,7 +51,7 @@
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "@vitest/coverage-v8": "^4.1.2",
-    "eslint": "^9.39.4",
+    "eslint": "^10.1.0",
     "prisma": "^7.6.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",

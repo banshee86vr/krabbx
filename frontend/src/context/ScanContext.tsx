@@ -71,14 +71,33 @@ export function ScanProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      void syncScanStatus();
-    }, 0);
+    let cancelled = false;
+
+    void Promise.resolve().then(async () => {
+      try {
+        const status = await repositoryApi.getScanStatus();
+
+        if (cancelled) {
+          return;
+        }
+
+        applyScanStatus({
+          isScanning: status.isScanning,
+          scannedCount: status.scannedCount,
+          totalToScan: status.totalToScan,
+          progress: status.progress,
+          rateLimited: status.rateLimited,
+          totalAvailable: status.totalAvailable,
+        });
+      } catch (error) {
+        console.error('[ScanContext] Failed to sync initial scan status', error);
+      }
+    });
 
     return () => {
-      window.clearTimeout(timeout);
+      cancelled = true;
     };
-  }, [syncScanStatus]);
+  }, [applyScanStatus]);
 
   useEffect(() => {
     if (!scan.isScanning) {
