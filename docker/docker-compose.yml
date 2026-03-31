@@ -20,7 +20,7 @@ services:
 
   # Redis (for session storage and Socket.io adapter)
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: renovate-dashboard-redis
     restart: unless-stopped
     command: redis-server --appendonly yes
