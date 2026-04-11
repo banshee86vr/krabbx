@@ -135,14 +135,14 @@ export function Dependencies() {
 		<div className="space-y-6 relative">
 			{/* Empty State Overlay - No data in database */}
 			{showEmptyState && (
-				<div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-40 flex items-center justify-center">
+				<div className="fixed inset-0 bg-white/80 backdrop-blur-md z-40 flex items-center justify-center">
 					<div className="text-center max-w-md px-6">
 						<div className="mb-6">
-							<Package className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-							<h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+							<Package className="w-20 h-20 text-neutral-300 mx-auto mb-4" />
+							<h2 className="text-2xl font-bold text-neutral-700 mb-2">
 								No Dependencies Yet
 							</h2>
-							<p className="text-gray-600 dark:text-gray-400 mb-6">
+							<p className="text-neutral-500 mb-6">
 								Start by scanning your organization to discover dependencies and
 								check for outdated packages.
 							</p>
@@ -154,7 +154,7 @@ export function Dependencies() {
 							className={cn(
 								"px-6 py-3 text-lg font-semibold shadow-lg transition-all",
 								scanMutation.isPending || scan.isScanning
-									? "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
+									? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
 									: "btn-primary hover:shadow-xl",
 							)}
 						>
@@ -178,26 +178,26 @@ export function Dependencies() {
 				)}
 			>
 				<div>
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+					<h1 className="text-2xl font-bold text-neutral-700">
 						Dependencies
 					</h1>
 				</div>
 
 				{/* Stats badges */}
 				<div className="flex gap-2">
-					<div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg">
-						<p className="text-xs text-amber-600 dark:text-amber-400 font-semibold uppercase tracking-wide leading-none">
+					<div className="px-3 py-2 rounded-hds-lg bg-warning-50 border border-warning-100">
+						<p className="text-xs text-warning-300 font-semibold uppercase tracking-wide leading-none">
 							Outdated
 						</p>
-						<p className="text-lg font-bold text-amber-600 dark:text-amber-400 leading-tight mt-0.5">
+						<p className="text-lg font-bold text-warning-300 leading-tight mt-0.5">
 							{stats?.outdated || 0}
 						</p>
 					</div>
-					<div className="px-3 py-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700 rounded-lg">
-						<p className="text-xs text-primary-600 dark:text-primary-400 font-semibold uppercase tracking-wide leading-none">
+					<div className="px-3 py-2 rounded-hds-lg bg-action-50 border border-action-100">
+						<p className="text-xs text-action-300 font-semibold uppercase tracking-wide leading-none">
 							Open PRs
 						</p>
-						<p className="text-lg font-bold text-primary-600 dark:text-primary-400 leading-tight mt-0.5">
+						<p className="text-lg font-bold text-action-300 leading-tight mt-0.5">
 							{stats?.withOpenPR || 0}
 						</p>
 					</div>
@@ -215,7 +215,7 @@ export function Dependencies() {
 					{/* Search */}
 					<form onSubmit={handleSearch} className="flex-1">
 						<div className="relative">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
 							<input
 								type="text"
 								placeholder="Search packages..."
@@ -262,34 +262,34 @@ export function Dependencies() {
 				)}
 			>
 				<div className="overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-200 dark:divide-secondary-500/20">
-						<thead className="bg-gray-50 dark:bg-slate-800/50">
+					<table className="min-w-full divide-y divide-neutral-200">
+						<thead className="bg-neutral-50">
 							<tr>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300 whitespace-nowrap">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 									<button
 										onClick={() => toggleSort("packageName")}
-										className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										className="flex items-center gap-1 hover:text-neutral-700 transition-colors"
 									>
 										Package
 										<ArrowUpDown className="w-4 h-4" />
 									</button>
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
 									Repository
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
 									Type
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300 whitespace-nowrap">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 									Current
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300 whitespace-nowrap">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 									Latest
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300 whitespace-nowrap">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 									<button
 										onClick={() => toggleSort("updateType")}
-										className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										className="flex items-center gap-1 hover:text-neutral-700 transition-colors"
 									>
 										Update Type
 										<ArrowUpDown className="w-4 h-4" />
@@ -298,12 +298,12 @@ export function Dependencies() {
 								<th className="px-2.5 py-2"></th>
 							</tr>
 						</thead>
-						<tbody className="bg-white divide-y divide-gray-200 dark:bg-slate-900/30 dark:divide-slate-700/50">
+						<tbody className="bg-white divide-y divide-neutral-200">
 							{isLoading ? (
 								[...Array(10)].map((_, i) => (
 									<tr key={i}>
 										<td colSpan={7} className="px-2.5 py-0.5">
-											<div className="h-8 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+											<div className="h-8 bg-neutral-100 rounded animate-pulse" />
 										</td>
 									</tr>
 								))
@@ -311,7 +311,7 @@ export function Dependencies() {
 								<tr>
 									<td
 										colSpan={7}
-										className="px-2.5 py-4 text-center text-gray-500 dark:text-gray-400"
+										className="px-2.5 py-4 text-center text-neutral-500"
 									>
 										No dependencies found
 									</td>
@@ -320,12 +320,12 @@ export function Dependencies() {
 								data?.data.map((dep) => (
 									<tr
 										key={dep.id}
-										className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+										className="hover:bg-neutral-100 transition-colors"
 									>
 										<td className="px-2.5 py-0.5 text-xs">
 											<div className="flex items-center gap-1.5">
-												<Package className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-												<span className="font-medium dark:text-slate-100">
+												<Package className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+												<span className="font-medium text-neutral-700">
 													{dep.packageName}
 												</span>
 											</div>
@@ -334,7 +334,7 @@ export function Dependencies() {
 											{dep.repository && (
 												<Link
 													to={`/repositories/${dep.repository.id}`}
-													className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+													className="text-action-300 hover:text-action-400"
 												>
 													{dep.repository.name}
 												</Link>
@@ -353,12 +353,12 @@ export function Dependencies() {
 											)}
 										</td>
 										<td className="px-2.5 py-0.5 whitespace-nowrap">
-											<span className="font-mono text-xs text-gray-600 dark:text-gray-400">
+											<span className="font-mono text-xs text-neutral-500">
 												{dep.currentVersion}
 											</span>
 										</td>
 										<td className="px-2.5 py-0.5 whitespace-nowrap">
-											<span className="font-mono text-xs text-gray-600 dark:text-gray-400">
+											<span className="font-mono text-xs text-neutral-500">
 												{dep.latestVersion || "-"}
 											</span>
 										</td>
@@ -375,7 +375,7 @@ export function Dependencies() {
 													href={dep.prUrl}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-0.5"
+													className="text-neutral-400 hover:text-action-300 transition-colors p-0.5"
 													title={`View PR #${dep.prNumber}`}
 												>
 													<ExternalLink className="w-3.5 h-3.5" />
@@ -391,8 +391,8 @@ export function Dependencies() {
 
 				{/* Pagination */}
 				{data && data.pagination.totalPages > 1 && (
-					<div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-						<p className="text-sm text-gray-500">
+					<div className="flex items-center justify-between px-6 py-4 border-t border-neutral-200">
+						<p className="text-sm text-neutral-500">
 							Showing {(data.pagination.page - 1) * data.pagination.limit + 1}{" "}
 							to{" "}
 							{Math.min(
@@ -411,7 +411,7 @@ export function Dependencies() {
 							>
 								<ChevronLeft className="w-4 h-4" />
 							</button>
-							<span className="text-sm text-gray-600">
+							<span className="text-sm text-neutral-500">
 								Page {data.pagination.page} of {data.pagination.totalPages}
 							</span>
 							<button

@@ -19,7 +19,7 @@ export function Avatar({ src, alt, size = 'md', className }: AvatarProps) {
       src={src}
       alt={alt}
       className={cn(
-        'rounded-full object-cover border border-gray-200 dark:border-gray-600',
+        'rounded-full object-cover border border-neutral-200',
         sizeClasses[size],
         className
       )}
@@ -52,13 +52,13 @@ export function AvatarGroup({ contributors, max = 4, size = 'md' }: AvatarGroupP
             src={contributor.avatarUrl}
             alt={contributor.login}
             size={size}
-            className="ring-2 ring-white hover:ring-primary-500"
+            className="ring-2 ring-white hover:ring-action-300"
           />
         </a>
       ))}
       {remaining > 0 && (
         <div className={cn(
-          'rounded-full bg-gray-100 text-gray-600 font-semibold flex items-center justify-center border border-gray-200 ring-2 ring-white dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:ring-gray-800',
+          'rounded-full bg-neutral-100 text-neutral-500 font-semibold flex items-center justify-center border border-neutral-200 ring-2 ring-white',
           {
             'w-6 h-6 text-xs': size === 'sm',
             'w-8 h-8 text-xs': size === 'md',

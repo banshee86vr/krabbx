@@ -22,7 +22,6 @@ export function Select({ options, value, onChange, placeholder, className }: Sel
   const selectedOption = options.find(opt => opt.value === value);
   const displayLabel = selectedOption?.label || placeholder || 'Select...';
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -43,17 +42,10 @@ export function Select({ options, value, onChange, placeholder, className }: Sel
 
   return (
     <div ref={containerRef} className={cn('relative', className)}>
-      {/* Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          'flex h-10 w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm',
-          'text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
-          'disabled:cursor-not-allowed disabled:opacity-50',
-          'dark:border-secondary-500/30 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500',
-          'dark:focus:ring-primary-500 dark:focus:border-primary-500/50 dark:shadow-lg dark:shadow-primary-500/10',
-          'transition-colors'
-        )}
+        className="flex h-10 w-full items-center justify-between rounded-hds-sm bg-white px-3 py-2 text-sm text-neutral-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+        style={{ border: '1px solid #e2e8f0' }}
       >
         <span>{displayLabel}</span>
         <ChevronDown
@@ -64,13 +56,11 @@ export function Select({ options, value, onChange, placeholder, className }: Sel
         />
       </button>
 
-      {/* Dropdown */}
       {isOpen && (
-        <div className={cn(
-          'absolute top-full left-0 right-0 mt-2 z-50',
-          'rounded-md border border-gray-200 bg-white shadow-lg',
-          'dark:border-secondary-500/30 dark:bg-slate-800 dark:shadow-lg dark:shadow-secondary-500/10'
-        )}>
+        <div
+          className="absolute top-full left-0 right-0 mt-1 z-50 rounded-hds-md bg-white"
+          style={{ boxShadow: '0 0 0 1px #e2e8f040, 0 4px 6px 0 #47556920, 0 12px 24px 0 #47556930' }}
+        >
           <ul className="py-1">
             {options.map((option) => (
               <li key={option.value}>
@@ -79,8 +69,8 @@ export function Select({ options, value, onChange, placeholder, className }: Sel
                   className={cn(
                     'w-full text-left px-3 py-2 text-sm transition-colors',
                     value === option.value
-                      ? 'bg-primary-500 text-white dark:bg-primary-600 dark:text-slate-100'
-                      : 'text-gray-900 hover:bg-gray-100 dark:text-slate-100 dark:hover:bg-slate-700'
+                      ? 'bg-action-200 text-white'
+                      : 'text-neutral-700 hover:bg-neutral-100'
                   )}
                 >
                   {option.label}

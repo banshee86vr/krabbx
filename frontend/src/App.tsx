@@ -14,12 +14,10 @@ import { SocketProvider } from './context/SocketContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ScanProvider } from './context/ScanContext';
 import { SidebarProvider } from './context/SidebarContext';
-import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
+    <AuthProvider>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -53,7 +51,6 @@ function App() {
           />
         </Routes>
       </AuthProvider>
-    </ThemeProvider>
   );
 }
 

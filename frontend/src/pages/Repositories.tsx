@@ -128,14 +128,14 @@ export function Repositories() {
 		<div className="space-y-6 relative">
 			{/* Empty State Overlay - No data in database */}
 			{showEmptyState && (
-				<div className="fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-40 flex items-center justify-center">
+				<div className="fixed inset-0 bg-white/80 backdrop-blur-md z-40 flex items-center justify-center">
 					<div className="text-center max-w-md px-6">
 						<div className="mb-6">
-							<GitBranch className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-							<h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+							<GitBranch className="w-20 h-20 text-neutral-300 mx-auto mb-4" />
+							<h2 className="text-2xl font-bold text-neutral-700 mb-2">
 								No Repositories Yet
 							</h2>
-							<p className="text-gray-600 dark:text-gray-400 mb-6">
+							<p className="text-neutral-600 mb-6">
 								Start by scanning your organization to discover repositories and
 								their Renovate Bot adoption status.
 							</p>
@@ -147,7 +147,7 @@ export function Repositories() {
 							className={cn(
 								"px-6 py-3 text-lg font-semibold shadow-lg transition-all",
 								scanMutation.isPending || scan.isScanning
-									? "bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-500"
+									? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
 									: "btn-primary hover:shadow-xl",
 							)}
 						>
@@ -172,8 +172,8 @@ export function Repositories() {
 				)}
 			>
 				<div>
-					<h1 className="text-2xl font-bold text-gray-900">Repositories</h1>
-					<p className="text-gray-500 mt-1">
+					<h1 className="text-2xl font-bold text-neutral-700">Repositories</h1>
+					<p className="text-neutral-500 mt-1">
 						{data?.pagination.total || 0} repositories in your organization
 					</p>
 				</div>
@@ -191,7 +191,7 @@ export function Repositories() {
 					{/* Search */}
 					<form onSubmit={handleSearch} className="flex-1">
 						<div className="relative">
-							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
 							<input
 								type="text"
 								placeholder="Search repositories..."
@@ -238,58 +238,58 @@ export function Repositories() {
 				)}
 			>
 				<div className="overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-200 dark:divide-secondary-500/20">
-						<thead className="bg-gray-50 dark:bg-slate-800/50">
+					<table className="min-w-full divide-y divide-neutral-200">
+						<thead className="bg-neutral-50">
 							<tr>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
 									<button
 										onClick={() => toggleSort("name")}
-										className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										className="flex items-center gap-1 hover:text-neutral-700 transition-colors"
 									>
 										Repository
 										<ArrowUpDown className="w-4 h-4" />
 									</button>
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
 									<button
 										onClick={() => toggleSort("renovateAdopted")}
-										className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										className="flex items-center gap-1 hover:text-neutral-700 transition-colors"
 									>
 										Renovate
 										<ArrowUpDown className="w-4 h-4" />
 									</button>
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300 whitespace-nowrap">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 									<button
 										onClick={() => toggleSort("outdatedDependencies")}
-										className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										className="flex items-center gap-1 hover:text-neutral-700 transition-colors"
 									>
 										Open PRs / Dependencies
 										<ArrowUpDown className="w-4 h-4" />
 									</button>
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300 whitespace-nowrap">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 									<button
 										type="button"
 										onClick={() => toggleSort("lastScanAt")}
-										className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+										className="flex items-center gap-1 hover:text-neutral-700 transition-colors"
 									>
 										Last Scan
 										<ArrowUpDown className="w-4 h-4" />
 									</button>
 								</th>
-								<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider">
 									Contributors
 								</th>
 								<th className="px-2.5 py-2"></th>
 							</tr>
 						</thead>
-						<tbody className="bg-white divide-y divide-gray-200 dark:bg-slate-900/30 dark:divide-slate-700/50">
+						<tbody className="bg-white divide-y divide-neutral-200">
 							{isLoading ? (
 								[...Array(5)].map((_, i) => (
 									<tr key={`loading-${i}`}>
 										<td colSpan={7} className="px-2.5 py-0.5">
-											<div className="h-8 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+											<div className="h-8 bg-neutral-100 rounded-hds-sm animate-pulse" />
 										</td>
 									</tr>
 								))
@@ -297,7 +297,7 @@ export function Repositories() {
 								<tr>
 									<td
 										colSpan={7}
-										className="px-2.5 py-4 text-center text-gray-500 dark:text-gray-400"
+										className="px-2.5 py-4 text-center text-neutral-500"
 									>
 										No repositories found
 									</td>
@@ -306,20 +306,20 @@ export function Repositories() {
 								data?.data.map((repo) => (
 									<tr
 										key={repo.id}
-										className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+										className="hover:bg-neutral-100 transition-colors"
 									>
 										<td className="px-2.5 py-0.5 text-xs">
 											<div className="flex items-center gap-2">
-												<GitBranch className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+												<GitBranch className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
 												<div>
 													<Link
 														to={`/repositories/${repo.id}`}
-														className="font-medium dark:text-slate-100 hover:text-primary-600 dark:hover:text-primary-400"
+														className="font-medium hover:text-action-300"
 													>
 														{repo.name}
 													</Link>
 													{repo.description && (
-														<p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+														<p className="text-xs text-neutral-500 truncate max-w-xs">
 															{repo.description}
 														</p>
 													)}
@@ -341,15 +341,15 @@ export function Repositories() {
 										</td>
 										<td className="px-2.5 py-0.5 whitespace-nowrap">
 											<div className="flex flex-col gap-0.5">
-												<span className="text-xs font-semibold text-primary-600 dark:text-primary-400">
+												<span className="text-xs font-semibold text-action-300">
 													{repo.openRenovatePRs} open PRs
 												</span>
-												<span className="text-xs text-amber-600 dark:text-amber-400">
+												<span className="text-xs text-warning-300">
 													{repo.outdatedDependencies} dependencies
 												</span>
 											</div>
 										</td>
-										<td className="px-2.5 py-0.5 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+										<td className="px-2.5 py-0.5 whitespace-nowrap text-xs text-neutral-500">
 											{repo.lastScanAt
 												? formatRelativeTime(repo.lastScanAt)
 												: "Never"}
@@ -362,7 +362,7 @@ export function Repositories() {
 													size="sm"
 												/>
 											) : (
-												<span className="text-xs text-gray-400 dark:text-gray-500">
+												<span className="text-xs text-neutral-500">
 													No data
 												</span>
 											)}
@@ -372,7 +372,7 @@ export function Repositories() {
 												href={repo.htmlUrl}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors p-0.5"
+												className="text-neutral-400 hover:text-action-300 transition-colors p-0.5"
 											>
 												<ExternalLink className="w-3.5 h-3.5" />
 											</a>
@@ -386,8 +386,8 @@ export function Repositories() {
 
 				{/* Pagination */}
 				{data && data.pagination.totalPages > 1 && (
-					<div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-						<p className="text-sm text-gray-500">
+					<div className="flex items-center justify-between px-6 py-4 border-t border-neutral-200">
+						<p className="text-sm text-neutral-500">
 							Showing {(data.pagination.page - 1) * data.pagination.limit + 1}{" "}
 							to{" "}
 							{Math.min(
@@ -406,7 +406,7 @@ export function Repositories() {
 							>
 								<ChevronLeft className="w-4 h-4" />
 							</button>
-							<span className="text-sm text-gray-600">
+							<span className="text-sm text-neutral-600">
 								Page {data.pagination.page} of {data.pagination.totalPages}
 							</span>
 							<button

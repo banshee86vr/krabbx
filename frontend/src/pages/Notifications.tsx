@@ -94,10 +94,10 @@ export function Notifications() {
 			{/* Page Header */}
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 				<div>
-					<h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+					<h1 className="text-2xl font-bold text-neutral-700">
 						Notifications
 					</h1>
-					<p className="text-gray-500 dark:text-gray-400 mt-1">
+					<p className="text-neutral-500 mt-1">
 						Configure how you receive updates
 					</p>
 				</div>
@@ -111,7 +111,7 @@ export function Notifications() {
 			</div>
 
 			{/* Tabs */}
-			<div className="border-b border-gray-200 dark:border-gray-700">
+			<div className="border-b border-neutral-200">
 				<nav className="flex gap-8">
 					{[
 						{ id: "config", label: "Channels", icon: Settings },
@@ -129,14 +129,14 @@ export function Notifications() {
 							className={cn(
 								"flex items-center gap-2 pb-3 border-b-2 text-sm font-medium transition-colors",
 								activeTab === tab.id
-									? "border-primary-500 text-primary-600 dark:text-primary-400"
-									: "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300",
+									? "border-action-300 text-action-300"
+									: "border-transparent text-neutral-500 hover:text-neutral-700",
 							)}
 						>
 							<tab.icon className="w-4 h-4" />
 							{tab.label}
 							{tab.count !== undefined && tab.count > 0 && (
-								<span className="px-2 py-0.5 text-xs bg-red-100 text-red-600 rounded-full dark:bg-red-900/40 dark:text-red-300 dark:border dark:border-red-500/50">
+								<span className="px-2 py-0.5 text-xs bg-critical-50 text-critical-300 rounded-full">
 									{tab.count}
 								</span>
 							)}
@@ -154,11 +154,11 @@ export function Notifications() {
 						))
 					) : configs?.length === 0 ? (
 						<div className="card p-12 text-center">
-							<Bell className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto" />
-							<h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
+							<Bell className="w-12 h-12 text-neutral-300 mx-auto" />
+							<h3 className="mt-4 text-lg font-medium text-neutral-700">
 								No notification channels
 							</h3>
-							<p className="mt-2 text-gray-500 dark:text-gray-400">
+							<p className="mt-2 text-neutral-500">
 								Get started by adding a notification channel.
 							</p>
 							<button
@@ -177,24 +177,24 @@ export function Notifications() {
 										<div className="flex items-start gap-4">
 											<div
 												className={cn(
-													"p-3 rounded-lg",
+													"p-3 rounded-hds-lg",
 													config.enabled
-														? "bg-primary-100 dark:bg-primary-900/40"
-														: "bg-gray-100 dark:bg-gray-800",
+														? "bg-action-50"
+														: "bg-neutral-100",
 												)}
 											>
 												<Icon
 													className={cn(
 														"w-6 h-6",
 														config.enabled
-															? "text-primary-600 dark:text-primary-400"
-															: "text-gray-400 dark:text-gray-500",
+															? "text-action-300"
+															: "text-neutral-400",
 													)}
 												/>
 											</div>
 											<div>
 												<div className="flex items-center gap-2">
-													<h3 className="font-semibold text-gray-900 dark:text-gray-100">
+													<h3 className="font-semibold text-neutral-700">
 														{config.name}
 													</h3>
 													<span
@@ -208,7 +208,7 @@ export function Notifications() {
 														{config.enabled ? "Active" : "Disabled"}
 													</span>
 												</div>
-												<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+												<p className="text-sm text-neutral-500 mt-1">
 													{config.type === "teams" && "Microsoft Teams webhook"}
 													{config.type === "email" &&
 														`Email to ${(config.config.recipients || []).length} recipients`}
@@ -243,14 +243,14 @@ export function Notifications() {
 												title={config.enabled ? "Disable" : "Enable"}
 											>
 												{config.enabled ? (
-													<CheckCircle className="w-4 h-4 text-green-600" />
+													<CheckCircle className="w-4 h-4 text-success-300" />
 												) : (
-													<XCircle className="w-4 h-4 text-gray-400" />
+													<XCircle className="w-4 h-4 text-neutral-400" />
 												)}
 											</button>
 											<button
 												onClick={() => deleteMutation.mutate(config.id)}
-												className="btn-ghost p-2 text-red-600 hover:bg-red-50"
+												className="btn-ghost p-2 text-critical-300 hover:bg-critical-50"
 												title="Delete"
 											>
 												<Trash2 className="w-4 h-4" />
@@ -267,28 +267,28 @@ export function Notifications() {
 			{/* In-App Tab */}
 			{activeTab === "inapp" && (
 				<div className="card">
-					<div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-						<h3 className="font-medium text-gray-900 dark:text-gray-100">
+					<div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
+						<h3 className="font-medium text-neutral-700">
 							Recent Notifications
 						</h3>
 						<div className="flex gap-2">
 							<button
 								onClick={markAllAsRead}
-								className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+								className="text-sm text-action-300 hover:text-action-400"
 							>
 								Mark all read
 							</button>
 							<button
 								onClick={clearAll}
-								className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+								className="text-sm text-neutral-500 hover:text-neutral-700"
 							>
 								Clear all
 							</button>
 						</div>
 					</div>
-					<div className="divide-y divide-gray-100 dark:divide-gray-700">
+					<div className="divide-y divide-neutral-100">
 						{inAppNotifications.length === 0 ? (
-							<p className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+							<p className="px-6 py-8 text-center text-neutral-500">
 								No notifications yet
 							</p>
 						) : (
@@ -297,20 +297,19 @@ export function Notifications() {
 									key={notification.id}
 									className={cn(
 										"px-6 py-4",
-										!notification.read &&
-											"bg-blue-50 dark:bg-blue-900/20 dark:border-l-2 dark:border-l-blue-500/50",
+										!notification.read && "bg-action-50",
 									)}
 								>
 									<div className="flex items-start justify-between">
 										<div>
-											<p className="font-medium text-gray-900 dark:text-gray-100">
+											<p className="font-medium text-neutral-700">
 												{notification.subject}
 											</p>
-											<p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+											<p className="text-sm text-neutral-500 mt-1">
 												{notification.content}
 											</p>
 										</div>
-										<span className="text-xs text-gray-400 dark:text-gray-500">
+										<span className="text-xs text-neutral-400">
 											{formatDateTime(notification.timestamp)}
 										</span>
 									</div>
@@ -325,32 +324,32 @@ export function Notifications() {
 			{activeTab === "history" && (
 				<div className="card overflow-hidden">
 					<div className="overflow-x-auto">
-						<table className="min-w-full divide-y divide-gray-200 dark:divide-secondary-500/20">
-							<thead className="bg-gray-50 dark:bg-slate-800/50">
+						<table className="min-w-full divide-y divide-neutral-200">
+							<thead className="bg-neutral-50">
 								<tr>
-									<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+									<th className="px-2.5 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
 										Type
 									</th>
-									<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+									<th className="px-2.5 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
 										Trigger
 									</th>
-									<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+									<th className="px-2.5 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
 										Subject
 									</th>
-									<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300">
+									<th className="px-2.5 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
 										Status
 									</th>
-									<th className="px-2.5 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-slate-300 whitespace-nowrap">
+									<th className="px-2.5 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 										Sent At
 									</th>
 								</tr>
 							</thead>
-							<tbody className="bg-white divide-y divide-gray-200 dark:bg-slate-900/30 dark:divide-slate-700/50">
+							<tbody className="bg-white divide-y divide-neutral-200">
 								{history?.data.length === 0 ? (
 									<tr>
 										<td
 											colSpan={5}
-											className="px-2.5 py-4 text-center text-gray-500 dark:text-gray-400"
+											className="px-2.5 py-4 text-center text-neutral-500"
 										>
 											No notification history
 										</td>
@@ -361,12 +360,12 @@ export function Notifications() {
 										return (
 											<tr
 												key={item.id}
-												className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+												className="hover:bg-neutral-100 transition-colors"
 											>
 												<td className="px-2.5 py-0.5 text-xs">
 													<div className="flex items-center gap-1.5">
-														<Icon className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
-														<span className="capitalize dark:text-slate-100">
+														<Icon className="w-3.5 h-3.5 text-neutral-400 flex-shrink-0" />
+														<span className="capitalize text-neutral-700">
 															{item.type}
 														</span>
 													</div>
@@ -376,7 +375,7 @@ export function Notifications() {
 														{triggerLabels[item.trigger]}
 													</span>
 												</td>
-												<td className="px-2.5 py-0.5 text-xs dark:text-slate-100">
+												<td className="px-2.5 py-0.5 text-xs text-neutral-700">
 													{item.subject}
 												</td>
 												<td className="px-2.5 py-0.5 whitespace-nowrap">
@@ -386,7 +385,7 @@ export function Notifications() {
 														<span className="badge-danger">Failed</span>
 													)}
 												</td>
-												<td className="px-2.5 py-0.5 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+												<td className="px-2.5 py-0.5 whitespace-nowrap text-xs text-neutral-500">
 													{formatDateTime(item.sentAt)}
 												</td>
 											</tr>
@@ -453,15 +452,15 @@ function AddNotificationModal({ onClose }: { onClose: () => void }) {
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-			<div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl w-full max-w-md animate-fadeIn border dark:border-secondary-500/30">
-				<div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-					<h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+			<div className="bg-white rounded-hds-xl shadow-xl w-full max-w-md animate-fadeIn border border-neutral-200">
+				<div className="px-6 py-4 border-b border-neutral-200">
+					<h2 className="text-lg font-semibold text-neutral-700">
 						Add Notification Channel
 					</h2>
 				</div>
 				<form onSubmit={handleSubmit} className="p-6 space-y-4">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+						<label className="block text-sm font-medium text-neutral-600 mb-1">
 							Channel Type
 						</label>
 						<select
@@ -481,7 +480,7 @@ function AddNotificationModal({ onClose }: { onClose: () => void }) {
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+						<label className="block text-sm font-medium text-neutral-600 mb-1">
 							Name
 						</label>
 						<input
@@ -498,7 +497,7 @@ function AddNotificationModal({ onClose }: { onClose: () => void }) {
 
 					{form.type === "teams" && (
 						<div>
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+							<label className="block text-sm font-medium text-neutral-600 mb-1">
 								Webhook URL
 							</label>
 							<input
@@ -516,7 +515,7 @@ function AddNotificationModal({ onClose }: { onClose: () => void }) {
 
 					{form.type === "email" && (
 						<div>
-							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+							<label className="block text-sm font-medium text-neutral-600 mb-1">
 								Recipients
 							</label>
 							<input
@@ -529,14 +528,14 @@ function AddNotificationModal({ onClose }: { onClose: () => void }) {
 								className="input"
 								required
 							/>
-							<p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+							<p className="text-xs text-neutral-500 mt-1">
 								Comma-separated email addresses
 							</p>
 						</div>
 					)}
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+						<label className="block text-sm font-medium text-neutral-600 mb-2">
 							Triggers
 						</label>
 						<div className="space-y-2">
@@ -550,9 +549,9 @@ function AddNotificationModal({ onClose }: { onClose: () => void }) {
 											type="checkbox"
 											checked={form.triggers.includes(trigger)}
 											onChange={() => toggleTrigger(trigger)}
-											className="rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-800"
+											className="rounded border-neutral-300 text-action-300"
 										/>
-										<span className="text-sm text-gray-700 dark:text-gray-300">
+										<span className="text-sm text-neutral-600">
 											{triggerLabels[trigger]}
 										</span>
 									</label>
