@@ -25,6 +25,9 @@
     "concurrently": "^9.2.1"
   },
   "pnpm": {
+    "overrides": {
+      "defu": ">=6.1.5"
+    },
     "onlyBuiltDependencies": [
       "@prisma/client",
       "@prisma/engines",
