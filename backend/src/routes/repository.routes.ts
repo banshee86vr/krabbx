@@ -6,6 +6,7 @@ import { getOrganizationScanStatus, RenovateService } from '../services/renovate
 import { githubService } from '../services/github.service.js';
 import { getStorage } from '../storage/index.js';
 import { config } from '../config/env.js';
+import type { HealthScoreBreakdownV1 } from '../lib/gamificationScore.js';
 import { logger } from '../lib/logger.js';
 
 const router = Router();
@@ -17,7 +18,9 @@ const listQuerySchema = z.object({
   adopted: z.enum(['true', 'false', 'all']).default('all'),
   hasOutdated: z.enum(['true', 'false', 'all']).default('all'),
   search: z.string().optional(),
-  sortBy: z.enum(['name', 'renovateAdopted', 'outdatedDependencies', 'lastScanAt', 'updatedAt']).optional(),
+  sortBy: z
+    .enum(['name', 'renovateAdopted', 'outdatedDependencies', 'lastScanAt', 'updatedAt', 'healthScore'])
+    .optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
 });
 
@@ -27,20 +30,65 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const query = listQuerySchema.parse(req.query);
     const storage = getStorage();
 
-    const { data: repositories, total } = await storage.getRepositories(
-      {
-        isArchived: false,
-        renovateAdopted: query.adopted !== 'all' ? query.adopted === 'true' : undefined,
-        hasOutdated: query.hasOutdated !== 'all' ? query.hasOutdated === 'true' : undefined,
-        search: query.search,
-      },
-      {
+    const sortBy =
+      query.sortBy === 'healthScore' && !config.gamification.enabled
+        ? undefined
+        : query.sortBy;
+
+    const filters = {
+      isArchived: false,
+      renovateAdopted: query.adopted !== 'all' ? query.adopted === 'true' : undefined,
+      hasOutdated: query.hasOutdated !== 'all' ? query.hasOutdated === 'true' : undefined,
+      search: query.search,
+    };
+
+    let gamificationSummary: Awaited<ReturnType<typeof storage.getGamificationSummary>> | null = null;
+    const loadGamificationSummary = async () => {
+      if (!gamificationSummary) {
+        gamificationSummary = await storage.getGamificationSummary();
+      }
+      return gamificationSummary;
+    };
+
+    let repositories: Awaited<ReturnType<typeof storage.getRepositories>>['data'];
+    let total: number;
+
+    if (sortBy === 'healthScore' && config.gamification.enabled) {
+      const all = await storage.getRepositories(filters, {});
+      const summary = await loadGamificationSummary();
+      const scoreById = new Map(
+        summary.allRepositoryHealth.map((h) => [h.repositoryId, h.score] as const),
+      );
+      const dir = query.sortOrder === 'asc' ? 1 : -1;
+      const ranked = [...all.data].sort((a, b) => {
+        const sa = scoreById.get(a.id) ?? 0;
+        const sb = scoreById.get(b.id) ?? 0;
+        if (sa !== sb) return dir * (sa - sb);
+        return a.name.localeCompare(b.name);
+      });
+      total = all.total;
+      repositories = ranked.slice(
+        (query.page - 1) * query.limit,
+        (query.page - 1) * query.limit + query.limit,
+      );
+    } else {
+      const result = await storage.getRepositories(filters, {
         skip: (query.page - 1) * query.limit,
         take: query.limit,
-        orderBy: query.sortBy,
+        orderBy: sortBy,
         orderDir: query.sortOrder,
-      }
-    );
+      });
+      repositories = result.data;
+      total = result.total;
+    }
+
+    let scoreById: Map<string, number> | null = null;
+    if (config.gamification.enabled) {
+      const summary = await loadGamificationSummary();
+      scoreById = new Map(
+        summary.allRepositoryHealth.map((h) => [h.repositoryId, h.score] as const),
+      );
+    }
 
     // Fetch contributors for each repository (in parallel)
     const repositoriesWithContributors = await Promise.all(
@@ -48,10 +96,22 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         try {
           const owner = repo.fullName.includes('/') ? repo.fullName.split('/')[0]! : repo.name;
           const contributors = await githubService.getRepositoryContributors(owner, repo.name, 5);
-          return { ...repo, contributors };
+          return {
+            ...repo,
+            contributors,
+            ...(config.gamification.enabled
+              ? { healthScore: scoreById?.get(repo.id) ?? 0 }
+              : {}),
+          };
         } catch (error) {
           logger.error(`Failed to fetch contributors for ${repo.name}`, error);
-          return { ...repo, contributors: [] };
+          return {
+            ...repo,
+            contributors: [],
+            ...(config.gamification.enabled
+              ? { healthScore: scoreById?.get(repo.id) ?? 0 }
+              : {}),
+          };
         }
       })
     );
@@ -105,10 +165,32 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     );
     const scanHistory = await storage.getScanHistory(id, 10);
 
+    let gamification: (HealthScoreBreakdownV1 & {
+      organizationRank: number | null;
+      totalRankedRepos: number;
+    }) | null = null;
+
+    if (config.gamification.enabled) {
+      const breakdown = await storage.getHealthScoreBreakdownForRepository(id);
+      if (breakdown) {
+        const summary = await storage.getGamificationSummary();
+        const sorted = [...summary.allRepositoryHealth].sort(
+          (a, b) => b.score - a.score || a.name.localeCompare(b.name),
+        );
+        const idx = sorted.findIndex((h) => h.repositoryId === id);
+        gamification = {
+          ...breakdown,
+          organizationRank: idx >= 0 ? idx + 1 : null,
+          totalRankedRepos: sorted.length,
+        };
+      }
+    }
+
     res.json({
       ...repository,
       dependencies,
       scanHistory,
+      gamification,
     });
   } catch (error) {
     next(error);

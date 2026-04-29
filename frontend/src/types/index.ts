@@ -18,6 +18,8 @@ export interface Repository {
   lastScanAt: string | null;
   outdatedDependencies: number;
   openRenovatePRs: number;
+  /** Present when backend GAMIFICATION_ENABLED=true */
+  healthScore?: number;
   htmlUrl: string;
   isArchived: boolean;
   isPrivate: boolean;
@@ -158,6 +160,85 @@ export interface DashboardSummary {
       patch: number;
     };
   }[];
+}
+
+export type GamificationBadgeId =
+  | 'debt_crusher_org'
+  | 'consistent_maintainer_org'
+  | 'zero_major_drift_repo';
+
+export interface GamificationBadgeUnlock {
+  badgeId: GamificationBadgeId;
+  label: string;
+  description: string;
+  unlockedAt: string;
+  scope: 'organization' | 'repository';
+  repositoryId?: string;
+  repositoryName?: string;
+}
+
+export interface GamificationRepositoryHealth {
+  repositoryId: string;
+  name: string;
+  fullName: string;
+  score: number;
+  scoreVersion: 'v1';
+  outdatedDependencies: number;
+  totalDependencies: number;
+  majorOutdatedCount: number;
+  openRenovatePRs: number;
+}
+
+export interface GamificationSummary {
+  enabled: boolean;
+  scoreVersion: 'v1';
+  headline: string;
+  orgTrend14d: {
+    startOutdated: number | null;
+    endOutdated: number | null;
+    percentImproved: number | null;
+  } | null;
+  leaderboard: (GamificationRepositoryHealth & { rank: number })[];
+  allRepositoryHealth: GamificationRepositoryHealth[];
+  recentBadges: GamificationBadgeUnlock[];
+}
+
+/** Mirrors backend `HealthScoreBreakdownV1` — v1 health score math + radar axes */
+export interface HealthScoreBreakdownV1 {
+  scoreVersion: 'v1';
+  finalScore: number;
+  inputs: {
+    totalDependencies: number;
+    outdatedDependencies: number;
+    majorOutdatedCount: number;
+    openRenovatePRs: number;
+  };
+  formula: {
+    outdatedRatio: number;
+    baseFromOutdatedRatio: number;
+    majorPenalty: number;
+    scoreAfterMajor: number;
+    prRemediationBonus: number;
+    rawBeforeClamp: number;
+  };
+  radar: {
+    outdatedRatioTerm: number;
+    majorDiscipline: number;
+    prRemediation: number;
+  };
+}
+
+/** GET /api/repositories/:id gamification payload when enabled */
+export interface RepositoryGamification extends HealthScoreBreakdownV1 {
+  organizationRank: number | null;
+  totalRankedRepos: number;
+}
+
+/** Single-repo API payload including dependency rows and optional gamification breakdown */
+export interface RepositoryDetailPayload extends Repository {
+  dependencies: Dependency[];
+  scanHistory?: ScanHistory[];
+  gamification?: RepositoryGamification | null;
 }
 
 export interface DependencyStats {

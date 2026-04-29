@@ -9,7 +9,10 @@ import type {
   PaginationOptions,
   UpdateType,
   DependencyType,
+  GamificationSummary,
 } from './types.js';
+import { buildGamificationSummaryFromRepos } from '../lib/gamificationAggregate.js';
+import { computeHealthScoreBreakdownV1 } from '../lib/gamificationScore.js';
 
 function generateId(): string {
   return Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -766,5 +769,46 @@ export class MemoryStorage implements IStorage {
       outdatedDeps: deps.filter(d => d.isOutdated).length,
       newUpdates,
     };
+  }
+
+  async getGamificationSummary(): Promise<GamificationSummary> {
+    const repos = Array.from(this.repositories.values()).filter((r) => !r.isArchived);
+
+    const majorOutdatedByRepoId = new Map<string, number>();
+    for (const dep of this.dependencies.values()) {
+      if (dep.isOutdated && dep.updateType === 'major') {
+        majorOutdatedByRepoId.set(
+          dep.repositoryId,
+          (majorOutdatedByRepoId.get(dep.repositoryId) ?? 0) + 1,
+        );
+      }
+    }
+
+    const trends = await this.getDashboardTrends(14);
+
+    return buildGamificationSummaryFromRepos(repos, majorOutdatedByRepoId, trends.dependencyTrends);
+  }
+
+  async getHealthScoreBreakdownForRepository(repositoryId: string) {
+    const repo = await this.getRepositoryById(repositoryId);
+    if (!repo) return null;
+
+    let majorOutdatedCount = 0;
+    for (const dep of this.dependencies.values()) {
+      if (
+        dep.repositoryId === repositoryId &&
+        dep.isOutdated &&
+        dep.updateType === 'major'
+      ) {
+        majorOutdatedCount += 1;
+      }
+    }
+
+    return computeHealthScoreBreakdownV1({
+      totalDependencies: repo.totalDependencies,
+      outdatedDependencies: repo.outdatedDependencies,
+      majorOutdatedCount,
+      openRenovatePRs: repo.openRenovatePRs,
+    });
   }
 }

@@ -238,3 +238,46 @@
 .animate-slideIn {
   animation: slideIn 0.2s ease-out;
 }
+
+/* Gamification skeleton / badge polish */
+@keyframes krxGamificationShimmer {
+  0% {
+    transform: translateX(-40%);
+  }
+  100% {
+    transform: translateX(40%);
+  }
+}
+
+.krx-gamification-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 45%,
+    transparent 90%
+  );
+  animation: krxGamificationShimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes krxBadgeShine {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.krx-badge-shine {
+  background: linear-gradient(
+    125deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 48%,
+    transparent 62%
+  );
+  animation: krxBadgeShine 3s ease-in-out infinite;
+}

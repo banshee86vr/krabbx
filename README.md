@@ -394,6 +394,7 @@ pnpm run db:migrate:prod   # Deploy migrations (no prompts)
 | `FRONTEND_URL`            | http://localhost:5173 | Frontend URL for CORS and OAuth        |
 | `SCAN_INTERVAL_MINUTES`   | 60                    | Auto-scan interval                     |
 | `MAX_SCAN_LIMIT`          | 0                     | Max repos per scan (0=unlimited)       |
+| `GAMIFICATION_ENABLED`    | false                 | When `true`, health scores, leaderboard, badges (`/api/dashboard/gamification`, repo list `healthScore`, sort `healthScore`) |
 | `SCAN_REPOS`              | -                     | Comma-separated list of specific repos |
 | `TEAMS_WEBHOOK_URL`       | -                     | MS Teams incoming webhook              |
 | `SMTP_HOST`               | -                     | SMTP server for emails                 |

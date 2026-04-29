@@ -73,6 +73,9 @@ const envSchemaBase = z.object({
   // Redis (for session storage and Socket.io adapter in production)
   REDIS_URL: z.string().default('redis://localhost:6379'),
   USE_REDIS: z.enum(['true', 'false']).default('false'),
+
+  /** When true, expose /api/dashboard/gamification and enrich repository list with health scores */
+  GAMIFICATION_ENABLED: z.enum(['true', 'false']).default('true'),
 });
 
 const envSchema = envSchemaBase.superRefine((data, ctx) => {
@@ -150,5 +153,8 @@ export const config = {
   },
   redis: {
     url: env.REDIS_URL,
+  },
+  gamification: {
+    enabled: env.GAMIFICATION_ENABLED === 'true',
   },
 };

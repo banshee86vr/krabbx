@@ -275,8 +275,19 @@ export class RenovateService {
 
     const repoOwner = githubRepo.ownerLogin;
 
-    // Check for Renovate workflow (config is embedded in the reusable workflow)
-    const hasRenovateWorkflow = await githubService.checkRenovateWorkflow(repoOwner, repoName);
+    // Adoption: (1) config, (2) GHA workflow, (3) Renovate PRs — open or recent closed
+    // (hosted app + repo fully up to date → no open PRs; closed renovate PRs still prove adoption).
+    const renovateConfig = await githubService.checkRenovateConfig(repoOwner, repoName);
+    const hasRenovateWorkflow =
+      renovateConfig === null
+        ? await githubService.checkRenovateWorkflow(repoOwner, repoName)
+        : false;
+    const hasRenovatePrEvidence = await githubService.hasRenovatePullRequestEvidence(
+      repoOwner,
+      repoName
+    );
+    const renovateAdopted =
+      renovateConfig !== null || hasRenovateWorkflow || hasRenovatePrEvidence;
 
     // Get or create repository in storage
     const repository = await storage.upsertRepository({
@@ -288,8 +299,8 @@ export class RenovateService {
       htmlUrl: githubRepo.html_url,
       isArchived: githubRepo.archived,
       isPrivate: githubRepo.private,
-      renovateAdopted: hasRenovateWorkflow,
-      renovateConfigPath: null,
+      renovateAdopted,
+      renovateConfigPath: renovateConfig?.path ?? null,
       renovateConfigValid: null,
       lastScanAt: new Date(),
     });

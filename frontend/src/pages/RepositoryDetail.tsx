@@ -1,4 +1,5 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
 	GitBranch,
@@ -27,6 +28,7 @@ import {
 	getDependencyTypeIcon,
 } from "../lib/utils";
 import { useScan } from "../context/ScanContext";
+import { RepositoryHealthPanel } from "../components/gamification/RepositoryHealthPanel";
 
 const iconMap: Record<string, React.ReactNode> = {
 	Box: <Box className="w-3 h-3" />,
@@ -41,6 +43,7 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export function RepositoryDetail() {
 	const { id } = useParams<{ id: string }>();
+	const location = useLocation();
 	const queryClient = useQueryClient();
 	const { scan } = useScan();
 
@@ -49,6 +52,17 @@ export function RepositoryDetail() {
 		queryFn: () => repositoryApi.get(id!),
 		enabled: !!id,
 	});
+
+	useEffect(() => {
+		if (location.hash !== "#repo-health" || !repo?.gamification) return;
+		const frame = requestAnimationFrame(() => {
+			document.getElementById("repo-health")?.scrollIntoView({
+				behavior: "smooth",
+				block: "start",
+			});
+		});
+		return () => cancelAnimationFrame(frame);
+	}, [location.hash, repo?.gamification, repo?.id]);
 
 	const scanMutation = useMutation({
 		mutationFn: () => repositoryApi.scanOne(id!),
@@ -113,7 +127,7 @@ export function RepositoryDetail() {
 							{repo.description && (
 								<p className="text-neutral-500 mt-1">{repo.description}</p>
 							)}
-							<div className="flex items-center gap-4 mt-3 text-sm text-neutral-500">
+							<div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-neutral-500">
 								<span className="flex items-center gap-1">
 									<Clock className="w-4 h-4" />
 									Last scan:{" "}
@@ -121,6 +135,15 @@ export function RepositoryDetail() {
 										? formatRelativeTime(repo.lastScanAt)
 										: "Never"}
 								</span>
+								{repo.gamification && (
+									<a
+										href="#repo-health"
+										className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100 hover:bg-indigo-100"
+									>
+										Health score {repo.gamification.finalScore}
+										<span className="font-normal text-indigo-500">· details</span>
+									</a>
+								)}
 								{repo.renovateConfigPath && (
 									<span className="flex items-center gap-1">
 										<FileJson className="w-4 h-4" />
@@ -180,6 +203,13 @@ export function RepositoryDetail() {
 					</div>
 				</div>
 			</div>
+
+			{repo.gamification && (
+				<RepositoryHealthPanel
+					gamification={repo.gamification}
+					rankHidden={repo.isArchived}
+				/>
+			)}
 
 			{/* Open PRs Section */}
 			<DependenciesSection repositoryId={id!} />

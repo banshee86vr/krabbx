@@ -1,3 +1,5 @@
+import type { HealthScoreBreakdownV1 } from '../lib/gamificationScore.js';
+
 // Storage types that mirror Prisma models but are storage-agnostic
 
 export interface Repository {
@@ -130,6 +132,50 @@ export type DependencyType =
 
 export type ScanType = 'full' | 'incremental' | 'manual';
 export type ScanStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+// Gamification (MVP)
+export type GamificationBadgeId =
+  | 'debt_crusher_org'
+  | 'consistent_maintainer_org'
+  | 'zero_major_drift_repo';
+
+export interface GamificationBadgeUnlock {
+  badgeId: GamificationBadgeId;
+  label: string;
+  description: string;
+  /** ISO timestamp — qualification evaluated at this time (no persistent history in MVP) */
+  unlockedAt: string;
+  scope: 'organization' | 'repository';
+  repositoryId?: string;
+  repositoryName?: string;
+}
+
+export interface GamificationRepositoryHealth {
+  repositoryId: string;
+  name: string;
+  fullName: string;
+  score: number;
+  scoreVersion: 'v1';
+  outdatedDependencies: number;
+  totalDependencies: number;
+  majorOutdatedCount: number;
+  openRenovatePRs: number;
+}
+
+export interface GamificationSummary {
+  enabled: boolean;
+  scoreVersion: 'v1';
+  headline: string;
+  orgTrend14d: {
+    startOutdated: number | null;
+    endOutdated: number | null;
+    percentImproved: number | null;
+  } | null;
+  leaderboard: (GamificationRepositoryHealth & { rank: number })[];
+  /** Scores for all non-archived repos (for list enrichment / sorting) */
+  allRepositoryHealth: GamificationRepositoryHealth[];
+  recentBadges: GamificationBadgeUnlock[];
+}
 
 // Query types
 export interface RepositoryFilters {
@@ -277,4 +323,10 @@ export interface IStorage {
     outdatedDeps: number;
     newUpdates: number;
   }>;
+
+  /** Dependency-hygiene gamification snapshot (leaderboard, badges, per-repo scores) */
+  getGamificationSummary(): Promise<GamificationSummary>;
+
+  /** Per-repository health score breakdown (same inputs as leaderboard) */
+  getHealthScoreBreakdownForRepository(repositoryId: string): Promise<HealthScoreBreakdownV1 | null>;
 }

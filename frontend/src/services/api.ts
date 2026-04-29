@@ -2,9 +2,11 @@ import type {
   Repository,
   Dependency,
   DashboardSummary,
+  GamificationSummary,
   DependencyStats,
   AppSettings,
   PaginatedResponse,
+  RepositoryDetailPayload,
 } from '../types';
 
 const API_BASE = '/api';
@@ -69,6 +71,7 @@ export const dashboardApi = {
       prUrl: string | null;
     }>;
   }>>(`/dashboard/top-outdated?limit=${limit}`),
+  getGamification: () => fetchApi<GamificationSummary>('/dashboard/gamification'),
 };
 
 // Repositories
@@ -78,7 +81,7 @@ export interface RepositoryFilters {
   adopted?: 'true' | 'false' | 'all';
   hasOutdated?: 'true' | 'false' | 'all';
   search?: string;
-  sortBy?: 'name' | 'renovateAdopted' | 'outdatedDependencies' | 'lastScanAt' | 'updatedAt';
+  sortBy?: 'name' | 'renovateAdopted' | 'outdatedDependencies' | 'lastScanAt' | 'updatedAt' | 'healthScore';
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -90,7 +93,7 @@ export const repositoryApi = {
     });
     return fetchApi<PaginatedResponse<Repository>>(`/repositories?${params}`);
   },
-  get: (id: string) => fetchApi<Repository>(`/repositories/${id}`),
+  get: (id: string) => fetchApi<RepositoryDetailPayload>(`/repositories/${id}`),
   getScanStatus: () => fetchApi<{
     isScanning: boolean;
     scannedCount: number;

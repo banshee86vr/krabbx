@@ -1,4 +1,6 @@
 import type { PrismaClient } from '../generated/prisma/client.js';
+import { buildGamificationSummaryFromRepos } from '../lib/gamificationAggregate.js';
+import { computeHealthScoreBreakdownV1 } from '../lib/gamificationScore.js';
 import { getPrismaClient } from '../lib/prisma.js';
 import type {
   IStorage,
@@ -11,6 +13,7 @@ import type {
   PaginationOptions,
   UpdateType,
   DependencyType,
+  GamificationSummary,
 } from './types.js';
 
 export class DatabaseStorage implements IStorage {
@@ -813,5 +816,52 @@ export class DatabaseStorage implements IStorage {
       outdatedDeps,
       newUpdates: newUpdates._sum.newUpdatesFound || 0,
     };
+  }
+
+  async getGamificationSummary(): Promise<GamificationSummary> {
+    const [repos, majorAgg, trends] = await Promise.all([
+      this.prisma.repository.findMany({
+        where: { isArchived: false },
+      }),
+      this.prisma.dependency.groupBy({
+        by: ['repositoryId'],
+        where: { isOutdated: true, updateType: 'major' },
+        _count: { _all: true },
+      }),
+      this.getDashboardTrends(14),
+    ]);
+
+    const majorOutdatedByRepoId = new Map<string, number>(
+      majorAgg.map(
+        (row: { repositoryId: string; _count: { _all: number } }) =>
+          [row.repositoryId, row._count._all] as [string, number],
+      ),
+    );
+
+    return buildGamificationSummaryFromRepos(
+      repos as Repository[],
+      majorOutdatedByRepoId,
+      trends.dependencyTrends,
+    );
+  }
+
+  async getHealthScoreBreakdownForRepository(repositoryId: string) {
+    const repo = await this.getRepositoryById(repositoryId);
+    if (!repo) return null;
+
+    const majorOutdatedCount = await this.prisma.dependency.count({
+      where: {
+        repositoryId,
+        isOutdated: true,
+        updateType: 'major',
+      },
+    });
+
+    return computeHealthScoreBreakdownV1({
+      totalDependencies: repo.totalDependencies,
+      outdatedDependencies: repo.outdatedDependencies,
+      majorOutdatedCount,
+      openRenovatePRs: repo.openRenovatePRs,
+    });
   }
 }

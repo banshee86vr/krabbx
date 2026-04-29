@@ -19,6 +19,30 @@ interface RenovateConfig {
   content: string;
 }
 
+/** Substrings in workflow YAML that indicate Renovate is used (reusable workflow or common Actions). */
+const RENOVATE_WORKFLOW_MARKERS = [
+  'prom-candp/platform-gh-workflows/.github/workflows/bot-renovate.yaml',
+  'renovatebot/github-action',
+  'mend-io/renovate',
+  'mend-io/github-action',
+] as const;
+
+function workflowYamlIndicatesRenovate(content: string): boolean {
+  const text = content.replace(/\r\n/g, '\n');
+  for (const marker of RENOVATE_WORKFLOW_MARKERS) {
+    if (text.includes(marker)) return true;
+  }
+  // Docker-based Renovate (self-hosted / CI image)
+  if (/uses:\s*docker:\/\/[^\s]*renovate/i.test(text)) return true;
+  return false;
+}
+
+/** GitHub bot logins for Renovate / Mend (open or closed PRs). */
+function isRenovateBotLogin(login: string | undefined | null): boolean {
+  const l = login?.toLowerCase() || '';
+  return l.includes('renovate') && l.includes('[bot]');
+}
+
 interface RenovatePR {
   number: number;
   title: string;
@@ -299,8 +323,7 @@ export class GitHubService {
 
             if ('content' in workflowResponse.data) {
               const content = Buffer.from(workflowResponse.data.content, 'base64').toString('utf-8');
-              // Look for reference to the shared renovate workflow
-              if (content.includes('prom-candp/platform-gh-workflows/.github/workflows/bot-renovate.yaml')) {
+              if (workflowYamlIndicatesRenovate(content)) {
                 console.log(`[GitHub] Found renovate workflow in ${repoName}: ${file.name}`);
                 return true;
               }
@@ -341,11 +364,7 @@ export class GitHubService {
         if (response.data.length === 0) break;
 
         const pageRenovatePRs = response.data
-          .filter(pr => {
-            // Match any renovate bot (e.g., 'renovate[bot]', 'candp-renovatebot[bot]', 'my-renovate-bot[bot]')
-            const botLogin = pr.user?.login?.toLowerCase() || '';
-            return botLogin.includes('renovate') && botLogin.includes('[bot]');
-          })
+          .filter(pr => isRenovateBotLogin(pr.user?.login))
           .map(pr => ({
             number: pr.number,
             title: pr.title,
@@ -369,6 +388,39 @@ export class GitHubService {
     } catch {
       return [];
     }
+  }
+
+  /**
+   * True if Renovate has left PRs on this repo — open (current work) or recent closed
+   * (SaaS + fully up to date: no open renovate PRs, but merged/closed history remains).
+   */
+  async hasRenovatePullRequestEvidence(owner: string, repoName: string): Promise<boolean> {
+    const openRenovate = await this.getRenovatePRs(owner, repoName);
+    if (openRenovate.length > 0) return true;
+
+    const maxPages = 5;
+    const perPage = 100;
+    try {
+      for (let page = 1; page <= maxPages; page++) {
+        const response = await this.octokit.rest.pulls.list({
+          owner,
+          repo: repoName,
+          state: 'closed',
+          sort: 'updated',
+          direction: 'desc',
+          per_page: perPage,
+          page,
+        });
+        if (response.data.length === 0) return false;
+        for (const pr of response.data) {
+          if (isRenovateBotLogin(pr.user?.login)) return true;
+        }
+        if (response.data.length < perPage) break;
+      }
+    } catch {
+      return false;
+    }
+    return false;
   }
 
   private compareVersions(currentVersion: string, newVersion: string): string {

@@ -32,6 +32,7 @@ import { cn, formatRelativeTime, getDependencyTypeLabel } from '../lib/utils';
 import { Link } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
 import { useScan } from '../context/ScanContext';
+import { GamificationSection } from '../components/gamification/GamificationSection';
 
 const chartColors = {
   barFill: '#818cf8',
@@ -76,6 +77,19 @@ export function Dashboard() {
     staleTime: 30000,
     refetchOnWindowFocus: false,
     retry: 2,
+  });
+
+  const {
+    data: gamification,
+    isLoading: gamificationLoading,
+    error: gamificationError,
+  } = useQuery({
+    queryKey: ['dashboard', 'gamification'],
+    queryFn: dashboardApi.getGamification,
+    refetchInterval: 60000,
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   useEffect(() => {
@@ -223,6 +237,12 @@ export function Dashboard() {
           isScanning={scan.isScanning}
         />
       </div>
+
+      <GamificationSection
+        summary={gamification}
+        isLoading={gamificationLoading}
+        error={gamificationError instanceof Error ? gamificationError : null}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 card p-6">
@@ -372,9 +392,9 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="card">
-          <div className="px-6 py-4 border-b border-neutral-200">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+        <div className="card flex flex-col min-h-0 h-[min(32rem,55vh)] w-full">
+          <div className="px-6 py-4 border-b border-neutral-200 flex-shrink-0">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-neutral-700">Top Outdated Repositories</h2>
               {scan.isScanning && (
@@ -382,7 +402,7 @@ export function Dashboard() {
               )}
             </div>
           </div>
-          <div className="divide-y divide-neutral-100 min-h-[200px] flex flex-col">
+          <div className="divide-y divide-neutral-100 flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {summary?.topOutdated && summary.topOutdated.length > 0 ? (
               summary.topOutdated.map((repo) => (
                 <Link
@@ -431,15 +451,15 @@ export function Dashboard() {
               </div>
             )}
           </div>
-          <div className="px-6 py-3 border-t border-neutral-200 bg-neutral-50">
+          <div className="px-6 py-3 border-t border-neutral-200 bg-neutral-50 flex-shrink-0">
             <Link to="/repositories?hasOutdated=true" className="text-sm text-action-300 hover:text-action-400">
               View all repositories
             </Link>
           </div>
         </div>
 
-        <div className="card">
-          <div className="px-6 py-4 border-b border-neutral-200">
+        <div className="card flex flex-col min-h-0 h-[min(32rem,55vh)] w-full">
+          <div className="px-6 py-4 border-b border-neutral-200 flex-shrink-0">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-neutral-700">Top Outdated Dependencies</h2>
               {scan.isScanning && (
@@ -447,7 +467,7 @@ export function Dashboard() {
               )}
             </div>
           </div>
-          <div className="divide-y divide-neutral-100 min-h-[200px] flex flex-col">
+          <div className="divide-y divide-neutral-100 flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {topOutdated && topOutdated.length > 0 ? (
               topOutdated.map((dep) => (
                 <TopOutdatedDependencyItem key={`${dep.packageName}-${dep.packageManager}`} dependency={dep} />
@@ -461,15 +481,15 @@ export function Dashboard() {
               </div>
             )}
           </div>
-          <div className="px-6 py-3 border-t border-neutral-200 bg-neutral-50">
+          <div className="px-6 py-3 border-t border-neutral-200 bg-neutral-50 flex-shrink-0">
             <Link to="/dependencies?isOutdated=true" className="text-sm text-action-300 hover:text-action-400">
               View all outdated dependencies
             </Link>
           </div>
         </div>
 
-        <div className="card">
-          <div className="px-6 py-4 border-b border-neutral-200">
+        <div className="card flex flex-col min-h-0 h-[min(32rem,55vh)] w-full">
+          <div className="px-6 py-4 border-b border-neutral-200 flex-shrink-0">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-neutral-700">Recent Activity</h2>
               {scan.isScanning && (
@@ -477,7 +497,7 @@ export function Dashboard() {
               )}
             </div>
           </div>
-          <div className="divide-y divide-neutral-100 min-h-[200px] flex flex-col">
+          <div className="divide-y divide-neutral-100 flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {summary?.recentScans && summary.recentScans.length > 0 ? (
               summary.recentScans.map((scan) => (
                 <div key={scan.id} className="flex items-center justify-between px-6 py-4">

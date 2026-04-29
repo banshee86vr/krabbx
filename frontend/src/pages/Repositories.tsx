@@ -9,8 +9,9 @@ import {
 	XCircle,
 	ChevronLeft,
 	ChevronRight,
-	ArrowUpDown,
+ ArrowUpDown,
 	Zap,
+	Gauge,
 } from "lucide-react";
 import { repositoryApi, type RepositoryFilters } from "../services/api";
 import { cn, formatRelativeTime } from "../lib/utils";
@@ -109,12 +110,20 @@ export function Repositories() {
 		} else {
 			// Change sort field to new one with ascending order
 			newParams.set("sortBy", field);
-			newParams.set("sortOrder", "asc");
+			newParams.set(
+				"sortOrder",
+				field === "healthScore" ? "desc" : "asc",
+			);
 		}
 
 		newParams.set("page", "1");
 		setSearchParams(newParams);
 	};
+
+	const showHealthColumn =
+		!isLoading && Boolean(data?.data.some((r) => r.healthScore !== undefined));
+
+	const tableColCount = showHealthColumn ? 8 : 7;
 
 	const showEmptyState =
 		!isLoading &&
@@ -259,6 +268,19 @@ export function Repositories() {
 										<ArrowUpDown className="w-4 h-4" />
 									</button>
 								</th>
+								{showHealthColumn && (
+									<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
+										<button
+											type="button"
+											onClick={() => toggleSort("healthScore")}
+											className="flex items-center gap-1 hover:text-neutral-700 transition-colors"
+										>
+											<Gauge className="w-3.5 h-3.5" />
+											Health
+											<ArrowUpDown className="w-4 h-4" />
+										</button>
+									</th>
+								)}
 								<th className="px-2.5 py-2 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider whitespace-nowrap">
 									<button
 										onClick={() => toggleSort("outdatedDependencies")}
@@ -288,7 +310,7 @@ export function Repositories() {
 							{isLoading ? (
 								[...Array(5)].map((_, i) => (
 									<tr key={`loading-${i}`}>
-										<td colSpan={7} className="px-2.5 py-0.5">
+										<td colSpan={tableColCount} className="px-2.5 py-0.5">
 											<div className="h-8 bg-neutral-100 rounded-hds-sm animate-pulse" />
 										</td>
 									</tr>
@@ -296,7 +318,7 @@ export function Repositories() {
 							) : data?.data.length === 0 ? (
 								<tr>
 									<td
-										colSpan={7}
+										colSpan={tableColCount}
 										className="px-2.5 py-4 text-center text-neutral-500"
 									>
 										No repositories found
@@ -339,6 +361,28 @@ export function Repositories() {
 												</span>
 											)}
 										</td>
+										{showHealthColumn && (
+											<td className="px-2.5 py-0.5 whitespace-nowrap">
+												{repo.healthScore !== undefined ? (
+													<span
+														className={cn(
+															"inline-flex items-center justify-center min-w-[2.25rem] px-1.5 py-0.5 rounded-hds-sm text-xs font-bold tabular-nums",
+															repo.healthScore >= 80 &&
+																"bg-success-50 text-success-300",
+															repo.healthScore >= 50 &&
+																repo.healthScore < 80 &&
+																"bg-warning-50 text-warning-300",
+															repo.healthScore < 50 &&
+																"bg-critical-50 text-critical-300",
+														)}
+													>
+														{repo.healthScore}
+													</span>
+												) : (
+													<span className="text-xs text-neutral-400">—</span>
+												)}
+											</td>
+										)}
 										<td className="px-2.5 py-0.5 whitespace-nowrap">
 											<div className="flex flex-col gap-0.5">
 												<span className="text-xs font-semibold text-action-300">

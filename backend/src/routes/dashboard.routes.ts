@@ -1,8 +1,22 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getStorage } from '../storage/index.js';
 import { githubService } from '../services/github.service.js';
+import { config } from '../config/env.js';
+import type { GamificationSummary } from '../storage/types.js';
 
 const router = Router();
+
+function disabledGamificationPayload(): GamificationSummary {
+  return {
+    enabled: false,
+    scoreVersion: 'v1',
+    headline: '',
+    orgTrend14d: null,
+    leaderboard: [],
+    allRepositoryHealth: [],
+    recentBadges: [],
+  };
+}
 
 // GET /api/dashboard/summary - Get dashboard summary data
 router.get('/summary', async (_req: Request, res: Response, next: NextFunction) => {
@@ -33,6 +47,21 @@ router.get('/activity', async (_req: Request, res: Response, next: NextFunction)
     const storage = getStorage();
     const activities = await storage.getDashboardActivity();
     res.json(activities);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/dashboard/gamification - Leaderboard and dependency health scores
+router.get('/gamification', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!config.gamification.enabled) {
+      res.json(disabledGamificationPayload());
+      return;
+    }
+    const storage = getStorage();
+    const summary = await storage.getGamificationSummary();
+    res.json(summary);
   } catch (error) {
     next(error);
   }
