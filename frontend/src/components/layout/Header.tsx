@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { RefreshCw, Menu, X, LogOut, User } from 'lucide-react';
-import { useSocket } from '../../context/SocketContext';
 import { useScan } from '../../context/ScanContext';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
@@ -18,7 +17,6 @@ const mobileNavigation = [
 export function Header() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const { isConnected } = useSocket();
   const { scan } = useScan();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -31,7 +29,7 @@ export function Header() {
 
   return (
     <header className="krx-header fixed top-0 left-0 right-0 z-40 h-[60px]">
-      <div className="flex items-center justify-between h-full px-4 lg:px-6">
+      <div className="flex items-center h-full px-4 lg:px-6">
         {/* Mobile menu button */}
         <button
           type="button"
@@ -41,16 +39,7 @@ export function Header() {
           {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
-        {/* Left side - Connection status */}
-        <div className="hidden lg:flex items-center gap-2">
-          <div className={cn(
-            'w-2 h-2 rounded-full',
-            isConnected ? 'bg-success-200' : 'bg-neutral-400'
-          )} />
-          <span className="text-sm text-white/75">
-            {isConnected ? 'Connected' : 'Disconnected'}
-          </span>
-        </div>
+        <div className="flex-1 min-w-0" aria-hidden />
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-1">
