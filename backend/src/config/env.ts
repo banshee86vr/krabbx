@@ -12,6 +12,18 @@ for (const envPath of envPaths) {
   dotenv.config({ path: envPath });
 }
 
+// CI and local `vitest` run without a committed .env; env is parsed as soon as any
+// module imports `config` (e.g. auth middleware in tests). Supply minimal values
+// only when unset so real .env and explicit env vars still win.
+if (process.env.VITEST === 'true') {
+  process.env.GITHUB_TOKEN ||= 'test-github-token';
+  process.env.SESSION_SECRET ||= 'test-session-secret';
+  process.env.GITHUB_ORG ||= 'test-org';
+  process.env.GITHUB_AUTH_CLIENT_ID ||= 'test-oauth-client-id';
+  process.env.GITHUB_AUTH_CLIENT_SECRET ||= 'test-oauth-client-secret';
+  process.env.AUTH_ENABLED ??= 'true';
+}
+
 /** Comma-separated org or user login slugs, or legacy single org via GITHUB_ORG only */
 export function parseGithubTargetLoginList(raw: {
   GITHUB_TARGETS?: string;
