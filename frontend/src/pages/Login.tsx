@@ -51,11 +51,10 @@ export function Login() {
           </button>
           
           <div className="mt-6 text-center text-sm text-neutral-500">
-            <p>You need to be a member of the</p>
-            <p className="font-semibold text-neutral-700 mt-1">
-              team_cloud_and_platforms team
+            <p>
+              Access is limited to users who meet this instance&apos;s GitHub authorization rules
+              (organization or team membership, as configured by your administrator).
             </p>
-            <p className="text-xs mt-1">in the prom-candp organization</p>
           </div>
         </div>
         

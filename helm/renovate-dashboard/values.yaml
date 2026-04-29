@@ -160,12 +160,18 @@ backend:
   github:
     # GitHub API token (required)
     token: ""
-    # GitHub organization name (required)
+    # Legacy: single scan owner when targets is unset (alternative to github.targets below)
     org: ""
-    # GitHub OAuth App Client ID (required)
+    # Comma-separated org logins and/or GitHub users to scan with the token
+    targets: ""
+    # When false, OAuth secrets can be omitted and API runs without GitHub login
+    authEnabled: true
+    # GitHub OAuth App Client ID (required when authEnabled is true)
     authClientId: ""
     # GitHub OAuth App Client Secret (required)
     authClientSecret: ""
+    # Optional: team slug within each org target; empty = any org member may log in
+    authTeamSlug: ""
     # Use existing secret for GitHub credentials
     existingSecret: ""
     # Keys in the existing secret

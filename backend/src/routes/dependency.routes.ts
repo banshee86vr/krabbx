@@ -3,6 +3,8 @@ import { z } from 'zod';
 
 import { getStorage, type UpdateType } from '../storage/index.js';
 
+import { config } from '../config/env.js';
+
 const router = Router();
 
 // Query params schema
@@ -134,8 +136,12 @@ router.get('/prs/:repositoryId', async (req: Request, res: Response, next: NextF
       return;
     }
 
+    const owner = repository.fullName.includes('/')
+      ? repository.fullName.split('/')[0]!
+      : config.github.targets[0] ?? '';
+
     // Fetch all open PRs from GitHub
-    const allPRs = await githubService.getRenovatePRs(repository.name);
+    const allPRs = await githubService.getRenovatePRs(owner, repository.name);
 
     // Get dependencies for comparison (to map PR to dependency)
     const { data: dependencies } = await storage.getDependencies(

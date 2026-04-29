@@ -65,6 +65,11 @@ export function Settings() {
 
   const currentInterval = scanInterval ?? settings?.scanIntervalMinutes ?? 60;
 
+  const githubTargetsDisplay =
+    settings?.github?.targets?.length
+      ? settings.github.targets.join(', ')
+      : settings?.githubOrg || 'Not configured';
+
   if (isLoading) {
     return <SettingsSkeleton />;
   }
@@ -89,16 +94,18 @@ export function Settings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-neutral-600 mb-1">
-                Organization
+                GitHub targets
               </label>
               <div className="flex items-center gap-2">
-                <span className="font-mono text-neutral-700 bg-neutral-100 px-3 py-2 rounded-hds-sm">
-                  {settings?.githubOrg || 'Not configured'}
+                <span className="font-mono text-sm text-neutral-700 bg-neutral-100 px-3 py-2 rounded-hds-sm break-all">
+                  {githubTargetsDisplay}
                 </span>
-                <CheckCircle className="w-5 h-5 text-success-200" />
+                <CheckCircle className="w-5 h-5 text-success-200 shrink-0" />
               </div>
               <p className="text-sm text-neutral-500 mt-1">
-                Set via GITHUB_ORG environment variable
+                Set via{' '}
+                <code className="text-neutral-600">GITHUB_TARGETS</code> (comma-separated) or{' '}
+                <code className="text-neutral-600">GITHUB_ORG</code> for a single owner
               </p>
             </div>
 
@@ -324,7 +331,7 @@ export function Settings() {
                 Configuration via Environment Variables
               </p>
               <p className="text-sm text-warning-400 mt-1">
-                Some settings like GitHub token and organization are configured via environment
+                Some settings like GitHub token and scan targets are configured via environment
                 variables for security. See the .env.example file for available options.
               </p>
             </div>
@@ -338,8 +345,18 @@ export function Settings() {
               </p>
             </div>
             <div className="p-4 bg-neutral-50 rounded-hds-lg">
-              <p className="text-sm font-medium text-neutral-500">GITHUB_ORG</p>
-              <p className="text-sm text-neutral-700 mt-1">{settings?.githubOrg || 'Not configured'}</p>
+              <p className="text-sm font-medium text-neutral-500">GITHUB_TARGETS / GITHUB_ORG</p>
+              <p className="text-sm text-neutral-700 mt-1 break-all">
+                {settings?.github?.targets?.join(', ') || settings?.githubOrg || 'Not configured'}
+              </p>
+            </div>
+            <div className="p-4 bg-neutral-50 rounded-hds-lg">
+              <p className="text-sm font-medium text-neutral-500">AUTH_ENABLED</p>
+              <p className="text-sm text-neutral-700 mt-1">
+                {settings?.auth?.enabled ?? true
+                  ? 'true (OAuth required for API access)'
+                  : 'false (anonymous / local mode)'}
+              </p>
             </div>
           </div>
         </div>

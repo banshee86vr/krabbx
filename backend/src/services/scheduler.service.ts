@@ -49,7 +49,7 @@ export class SchedulerService {
         // Update last scan time
         const storage = getStorage();
         await storage.upsertAppSettings({
-          githubOrg: config.github.org,
+          githubOrg: config.github.targets.join(','),
           scanIntervalMinutes: intervalMinutes,
           lastFullScanAt: new Date(),
         });

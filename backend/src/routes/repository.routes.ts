@@ -46,7 +46,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const repositoriesWithContributors = await Promise.all(
       repositories.map(async (repo) => {
         try {
-          const contributors = await githubService.getRepositoryContributors(repo.name, 5);
+          const owner = repo.fullName.includes('/') ? repo.fullName.split('/')[0]! : repo.name;
+          const contributors = await githubService.getRepositoryContributors(owner, repo.name, 5);
           return { ...repo, contributors };
         } catch (error) {
           logger.error(`Failed to fetch contributors for ${repo.name}`, error);
@@ -137,7 +138,7 @@ router.post('/scan', async (req: Request, res: Response, next: NextFunction) => 
       const storage = getStorage();
       const settings = await storage.getAppSettings();
       await storage.upsertAppSettings({
-        githubOrg: settings?.githubOrg || config.github.org,
+        githubOrg: settings?.githubOrg || config.github.targets.join(','),
         scanIntervalMinutes: settings?.scanIntervalMinutes || 60,
         lastFullScanAt: new Date(),
       });
@@ -165,7 +166,8 @@ router.post('/:id/scan', async (req: Request, res: Response, next: NextFunction)
 
     const io = req.app.get('io');
     const renovateService = new RenovateService(io);
-    const result = await renovateService.scanRepository(repository.name);
+    const owner = repository.fullName.split('/')[0] || config.github.targets[0] || '';
+    const result = await renovateService.scanRepository(owner, repository.name);
 
     res.json({
       message: 'Scan completed',

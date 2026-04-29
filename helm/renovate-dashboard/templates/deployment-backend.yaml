@@ -81,16 +81,31 @@ spec:
                 configMapKeyRef:
                   name: {{ include "renovate-dashboard.fullname" . }}
                   key: USE_REDIS
-            - name: GITHUB_ORG
+            - name: AUTH_ENABLED
               valueFrom:
                 configMapKeyRef:
                   name: {{ include "renovate-dashboard.fullname" . }}
-                  key: GITHUB_ORG
+                  key: AUTH_ENABLED
             - name: FRONTEND_URL
               valueFrom:
                 configMapKeyRef:
                   name: {{ include "renovate-dashboard.fullname" . }}
                   key: FRONTEND_URL
+            - name: GITHUB_TARGETS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: GITHUB_TARGETS
+            - name: GITHUB_ORG
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: GITHUB_ORG
+            - name: GITHUB_AUTH_TEAM_SLUG
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: GITHUB_AUTH_TEAM_SLUG
             {{- if .Values.backend.scanRepos }}
             - name: SCAN_REPOS
               valueFrom:

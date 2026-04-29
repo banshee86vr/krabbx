@@ -85,9 +85,17 @@ export class RenovateService {
       if (config.scan.specificRepos && config.scan.specificRepos.length > 0) {
         const specificRepos = config.scan.specificRepos;
         log.info('Using specific repositories filter', { repositories: specificRepos });
-        reposToScan = allRepos.filter(repo =>
-          specificRepos.includes(repo.name)
-        );
+        reposToScan = allRepos.filter((repo) => {
+          const full = repo.full_name.toLowerCase();
+          return specificRepos.some((spec) => {
+            const s = spec.trim();
+            if (!s) return false;
+            if (s.includes('/')) {
+              return full === s.toLowerCase();
+            }
+            return repo.name === s;
+          });
+        });
         log.info('Repositories filtered', { 
           filtered: reposToScan.length, 
           total: allRepos.length 
@@ -135,7 +143,7 @@ export class RenovateService {
 
         try {
           log.info('Scanning repository', { repository: repo.name });
-          const result = await this.scanRepository(repo.name);
+          const result = await this.scanRepository(repo.ownerLogin, repo.name);
           if (result) {
             results.push(result);
             scannedCount++;
@@ -249,19 +257,26 @@ export class RenovateService {
     return results;
   }
 
-  async scanRepository(repoName: string): Promise<ScanResult | null> {
+  async scanRepository(owner: string, repoName: string): Promise<ScanResult | null> {
     const storage = getStorage();
 
-    // Get repo from GitHub
+    // Get repo from GitHub (multi-owner: match owner + short name or full slug)
     const repos = await githubService.getOrganizationRepositories();
-    const githubRepo = repos.find(r => r.name === repoName);
+    const githubRepo = repos.find(
+      (r) =>
+        r.name === repoName &&
+        (r.ownerLogin.toLowerCase() === owner.toLowerCase() ||
+          r.full_name.toLowerCase() === `${owner.toLowerCase()}/${repoName.toLowerCase()}`)
+    );
 
     if (!githubRepo) {
-      throw new Error(`Repository ${repoName} not found`);
+      throw new Error(`Repository ${owner}/${repoName} not found`);
     }
 
+    const repoOwner = githubRepo.ownerLogin;
+
     // Check for Renovate workflow (config is embedded in the reusable workflow)
-    const hasRenovateWorkflow = await githubService.checkRenovateWorkflow(repoName);
+    const hasRenovateWorkflow = await githubService.checkRenovateWorkflow(repoOwner, repoName);
 
     // Get or create repository in storage
     const repository = await storage.upsertRepository({
@@ -280,7 +295,7 @@ export class RenovateService {
     });
 
     // Get dependencies from open PRs
-    const dependencies = await githubService.getDependenciesFromPRs(repoName);
+    const dependencies = await githubService.getDependenciesFromPRs(repoOwner, repoName);
     let newUpdatesFound = 0;
 
     // Update dependencies in storage

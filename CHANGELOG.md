@@ -4,6 +4,13 @@ All notable changes to the Renovate Bot Dashboard project.
 
 ## [Unreleased] - 2025-12-03
 
+### GitHub configuration and scanning
+
+- **Multi-owner scanning**: `GITHUB_TARGETS` accepts a comma-separated list of organization logins and/or GitHub user logins. `GITHUB_ORG` remains supported as a single-owner fallback when `GITHUB_TARGETS` is unset.
+- **Optional OAuth**: `AUTH_ENABLED=false` allows running without GitHub OAuth client credentials; `requireAuth` and `/api/auth/status` treat the instance as accessible without a GitHub login session.
+- **Authorization**: OAuth callback enforces the existing org team check for each configured **organization** target; **user** targets skip team membership.
+- **API / UI**: Settings responses include `github.targets` and `auth.enabled`. Helm and Docker Compose pass `GITHUB_TARGETS`, `AUTH_ENABLED`, and related variables.
+
 ### 🔐 Security Improvements
 
 #### Package Vulnerabilities Fixed
@@ -41,9 +48,7 @@ All notable changes to the Renovate Bot Dashboard project.
 
 #### Authentication System
 - **GitHub OAuth SSO** - Mandatory authentication for all users
-- **Team-Based Access Control** - Only authorized team members can access
-  - Default: `team_cloud_and_platforms` in `prom-candp` organization
-  - Configurable in `backend/src/routes/auth.routes.ts`
+- **Team-Based Access Control** - Only authorized GitHub users can access (team enforced when `GITHUB_AUTH_TEAM_SLUG` is set; otherwise organization membership)
 - **Login/Logout Flow** with proper session management
 - **Protected Routes** - All API endpoints require authentication
 - **User Profile** displayed in header with avatar

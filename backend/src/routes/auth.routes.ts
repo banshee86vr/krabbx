@@ -8,8 +8,6 @@ const router = Router();
 // GitHub OAuth configuration
 const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
-const GITHUB_ORG = config.github.org;
-const REQUIRED_TEAM_SLUG = 'team_cloud_and_platforms';
 
 // Extend session type
 declare module 'express-session' {
@@ -28,6 +26,11 @@ declare module 'express-session' {
 
 // GET /api/auth/login - Initiate GitHub OAuth flow
 router.get('/login', (req: Request, res: Response) => {
+  if (!config.auth.enabled) {
+    res.redirect(config.frontendUrl);
+    return;
+  }
+
   const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback`;
   const state = Math.random().toString(36).substring(7);
   
@@ -46,6 +49,11 @@ router.get('/login', (req: Request, res: Response) => {
 // GET /api/auth/callback - Handle GitHub OAuth callback
 router.get('/callback', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    if (!config.auth.enabled) {
+      res.redirect(config.frontendUrl);
+      return;
+    }
+
     const { code, state } = req.query;
     
     // Verify state to prevent CSRF
@@ -85,12 +93,33 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
     // Get user info
     const octokit = new Octokit({ auth: accessToken });
     const { data: user } = await octokit.users.getAuthenticated();
-    
-    // Check if user belongs to the required team
-    const isTeamMember = await checkTeamMembership(octokit, GITHUB_ORG, REQUIRED_TEAM_SLUG);
-    
-    if (!isTeamMember) {
-      return res.redirect(`${config.frontendUrl}/unauthorized?reason=team`);
+
+    // For each configured target that is an Organization, require team or org membership.
+    // User (personal) targets skip this enforcement.
+    const teamSlug = config.auth.teamSlug;
+    for (const slug of config.github.targets) {
+      const { data: account } = await octokit.rest.users.getByUsername({ username: slug });
+      if (account.type !== 'Organization') {
+        logger.info('OAuth: personal target — skipping org access check', { slug });
+        continue;
+      }
+      if (teamSlug) {
+        const isTeamMember = await checkTeamMembership(octokit, slug, teamSlug);
+        if (!isTeamMember) {
+          logger.warn('OAuth: user not in required team for org target', {
+            slug,
+            team: teamSlug,
+            login: user.login,
+          });
+          return res.redirect(`${config.frontendUrl}/unauthorized?reason=team`);
+        }
+      } else {
+        const isOrgMember = await checkOrgMembership(octokit, slug);
+        if (!isOrgMember) {
+          logger.warn('OAuth: user not a member of org target', { slug, login: user.login });
+          return res.redirect(`${config.frontendUrl}/unauthorized?reason=team`);
+        }
+      }
     }
     
     // Get user emails
@@ -117,6 +146,21 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
 
 // GET /api/auth/status - Get current user status
 router.get('/status', (req: Request, res: Response) => {
+  if (!config.auth.enabled) {
+    res.json({
+      authenticated: true,
+      authDisabled: true,
+      user: {
+        id: 0,
+        login: 'local',
+        name: 'Local',
+        email: '',
+        avatar_url: '',
+      },
+    });
+    return;
+  }
+
   if (req.session.user) {
     // Don't send the access token to the frontend
     const { accessToken: _accessToken, ...userWithoutToken } = req.session.user;
@@ -137,6 +181,22 @@ router.post('/logout', (req: Request, res: Response): void => {
     res.json({ message: 'Logged out successfully' });
   });
 });
+
+async function checkOrgMembership(octokit: Octokit, org: string): Promise<boolean> {
+  try {
+    const { data: user } = await octokit.users.getAuthenticated();
+    await octokit.rest.orgs.checkMembershipForUser({
+      org,
+      username: user.login,
+    });
+    return true;
+  } catch (error) {
+    if ((error as { status?: number }).status === 404) {
+      return false;
+    }
+    throw error;
+  }
+}
 
 // Helper function to check team membership
 async function checkTeamMembership(octokit: Octokit, org: string, teamSlug: string): Promise<boolean> {

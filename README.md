@@ -95,17 +95,22 @@ pnpm install
 
 ```bash
 # Copy example environment file
-cp backend/.env.example backend/.env
+cp .env.example .env
 ```
 
-Edit `backend/.env` with your credentials:
+Edit `.env` with your credentials:
 
 ```env
-# GitHub Configuration
+# GitHub Configuration (scanner PAT)
 GITHUB_TOKEN=ghp_your_personal_access_token_here
-GITHUB_ORG=your-organization-name
+# Owners to scan — comma-separated orgs and/or users, OR legacy single value:
+GITHUB_TARGETS=my-org,my-github-username
+# GITHUB_ORG=single-org-or-user
 
-# GitHub OAuth (create at: https://github.com/settings/developers)
+# Optional: set to false for local/demo without OAuth app
+AUTH_ENABLED=true
+
+# GitHub OAuth (when AUTH_ENABLED=true — create at: https://github.com/settings/developers)
 GITHUB_AUTH_CLIENT_ID=your_oauth_client_id
 GITHUB_AUTH_CLIENT_SECRET=your_oauth_client_secret
 
@@ -177,17 +182,17 @@ GRANT ALL PRIVILEGES ON DATABASE renovate_dashboard TO renovate;
 
 ```bash
 # Copy example environment file
-cp backend/.env.example backend/.env
+cp .env.example .env
 ```
 
-Edit `backend/.env`:
+Edit `.env`:
 
 ```env
 # GitHub Configuration
 GITHUB_TOKEN=ghp_your_personal_access_token_here
-GITHUB_ORG=your-organization-name
+GITHUB_TARGETS=my-org,my-github-username
 
-# GitHub OAuth
+AUTH_ENABLED=true
 GITHUB_AUTH_CLIENT_ID=your_oauth_client_id
 GITHUB_AUTH_CLIENT_SECRET=your_oauth_client_secret
 
@@ -366,10 +371,12 @@ pnpm run db:migrate:prod   # Deploy migrations (no prompts)
 
 | Variable                    | Description                               | How to get                                                 |
 | --------------------------- | ----------------------------------------- | ---------------------------------------------------------- |
-| `GITHUB_TOKEN`              | GitHub PAT with `repo`, `read:org` scopes | [Create token](https://github.com/settings/tokens)         |
-| `GITHUB_ORG`                | GitHub organization to monitor            | Your org name                                              |
-| `GITHUB_AUTH_CLIENT_ID`     | OAuth App Client ID                       | [Create OAuth App](https://github.com/settings/developers) |
-| `GITHUB_AUTH_CLIENT_SECRET` | OAuth App Client Secret                   | Same OAuth App                                             |
+| `GITHUB_TOKEN`              | GitHub PAT (`repo`, `read:org`, etc.)     | [Create token](https://github.com/settings/tokens)         |
+| `GITHUB_TARGETS` and/or `GITHUB_ORG` | Owners to scan (comma-separated org/user logins, or single `GITHUB_ORG`) | Your org or username on GitHub |
+| `AUTH_ENABLED`              | When `true`, GitHub OAuth is required for API access | Set `false` only for trusted local/demo use |
+| `GITHUB_AUTH_CLIENT_ID`     | OAuth App Client ID (if `AUTH_ENABLED=true`) | [Create OAuth App](https://github.com/settings/developers) |
+| `GITHUB_AUTH_CLIENT_SECRET` | OAuth App Client Secret (if `AUTH_ENABLED=true`) | Same OAuth App                                             |
+| `GITHUB_AUTH_TEAM_SLUG`     | Optional GitHub team slug for org targets; if unset, org members may sign in | —                                                          |
 | `SESSION_SECRET`            | Random string for session encryption      | Generate: `openssl rand -base64 32`                        |
 
 #### Storage Configuration
@@ -407,9 +414,12 @@ pnpm run db:migrate:prod   # Deploy migrations (no prompts)
 
 ### Team-Based Access Control
 
-By default, only users in the `team_cloud_and_platforms` team under the `prom-candp` organization can access the dashboard. To change this, modify:
+For each configured **organization** target, OAuth checks GitHub access before issuing a session:
 
-- `backend/src/routes/auth.routes.ts` (lines 10-11)
+- If **`GITHUB_AUTH_TEAM_SLUG`** is set, the user must be in that team within the organization.
+- If it is unset, any **member of the organization** may sign in.
+
+Personal (user) targets do not apply this check.
 
 ### Notification Triggers
 

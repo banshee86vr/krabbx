@@ -8,7 +8,10 @@ const router = Router();
 
 const updateSettingsSchema = z.object({
   scanIntervalMinutes: z.number().min(15).max(1440).optional(),
+  maxScanLimit: z.number().min(0).max(1000).optional(),
 });
+
+const targetsCsv = () => config.github.targets.join(',');
 
 // GET /api/settings - Get application settings
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +21,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
     if (!settings) {
       settings = await storage.upsertAppSettings({
-        githubOrg: process.env.GITHUB_ORG || 'unknown',
+        githubOrg: targetsCsv(),
         scanIntervalMinutes: 60,
       });
     }
@@ -42,8 +45,13 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     res.json({
       ...settings,
       github: {
+        targets: config.github.targets,
+        /** Deprecated: stored label — prefer `targets` */
         org: settings.githubOrg,
         rateLimit,
+      },
+      auth: {
+        enabled: config.auth.enabled,
       },
       redis: redisStatus,
       storageMode: config.storageMode,
@@ -58,13 +66,44 @@ router.put('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = updateSettingsSchema.parse(req.body);
     const storage = getStorage();
+    const prev = await storage.getAppSettings();
 
     const settings = await storage.upsertAppSettings({
-      githubOrg: process.env.GITHUB_ORG || 'unknown',
-      scanIntervalMinutes: data.scanIntervalMinutes || 60,
+      githubOrg: prev?.githubOrg ?? targetsCsv(),
+      scanIntervalMinutes:
+        data.scanIntervalMinutes ??
+        prev?.scanIntervalMinutes ??
+        60,
+      ...(typeof data.maxScanLimit === 'number' ? { maxScanLimit: data.maxScanLimit } : {}),
     });
 
-    res.json(settings);
+    let rateLimit: { remaining: number; limit: number; reset: Date } | null = null;
+    try {
+      rateLimit = await githubService.getRateLimit();
+    } catch {
+      // ignore
+    }
+
+    const redisClient = req.app.get('redisClient');
+    const redisStatus = {
+      enabled: process.env.USE_REDIS === 'true' || config.nodeEnv === 'production',
+      connected: redisClient ? redisClient.isReady : false,
+      mode: config.nodeEnv === 'production' ? 'required' : 'optional',
+    };
+
+    res.json({
+      ...settings,
+      github: {
+        targets: config.github.targets,
+        org: settings.githubOrg,
+        rateLimit,
+      },
+      auth: {
+        enabled: config.auth.enabled,
+      },
+      redis: redisStatus,
+      storageMode: config.storageMode,
+    });
   } catch (error) {
     next(error);
   }

@@ -11,7 +11,10 @@ async function main() {
     update: {},
     create: {
       id: 'app-settings',
-      githubOrg: process.env.GITHUB_ORG || 'your-organization',
+      githubOrg:
+        process.env.GITHUB_TARGETS?.trim()?.split(',').map((t) => t.trim()).filter(Boolean).join(',') ||
+        process.env.GITHUB_ORG?.trim() ||
+        'your-organization',
       scanIntervalMinutes: 60,
     },
   });

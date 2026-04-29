@@ -1,4 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
+
+import { config } from '../config/env.js';
 
 // Custom error class for auth errors
 export class AuthError extends Error {
@@ -13,6 +15,10 @@ export class AuthError extends Error {
 
 // Middleware to check if user is authenticated
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  if (!config.auth.enabled) {
+    next();
+    return;
+  }
   if (!req.session.user) {
     res.status(401).json({
       error: 'Unauthorized',

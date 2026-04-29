@@ -22,8 +22,8 @@ export function Unauthorized() {
             You do not have permission to access this application.
           </p>
           <p className="text-neutral-500 text-sm">
-            You must be a member of the <span className="font-semibold text-neutral-700">team_cloud_and_platforms</span> team
-            in the <span className="font-semibold text-neutral-700">prom-candp</span> organization.
+            You must be allowed by this deployment&apos;s GitHub access rules (for example, membership in the
+            configured organization team, or the organization itself, depending on server configuration).
           </p>
         </div>
 

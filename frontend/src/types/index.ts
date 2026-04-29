@@ -186,12 +186,18 @@ export interface AppSettings {
   maxScanLimit: number;
   lastFullScanAt: string | null;
   github: {
+    /** Active scan targets from server config */
+    targets: string[];
+    /** Deprecated persisted label — use `targets` */
     org: string;
     rateLimit: {
       remaining: number;
       limit: number;
       reset: Date;
-    };
+    } | null;
+  };
+  auth?: {
+    enabled: boolean;
   };
   redis?: {
     enabled: boolean;

@@ -1,36 +1,61 @@
 import dotenv from 'dotenv';
-import { z } from 'zod';
 import path from 'path';
+import { z } from 'zod';
 
 // Load .env files - try multiple locations
 const envPaths = [
   path.resolve(process.cwd(), '../.env'), // From backend/ to root
-  path.resolve(process.cwd(), '.env'),    // From root
+  path.resolve(process.cwd(), '.env'), // From root
 ];
 
 for (const envPath of envPaths) {
   dotenv.config({ path: envPath });
 }
 
-const envSchema = z.object({
+/** Comma-separated org or user login slugs, or legacy single org via GITHUB_ORG only */
+export function parseGithubTargetLoginList(raw: {
+  GITHUB_TARGETS?: string;
+  GITHUB_ORG?: string;
+}): string[] {
+  const targets = raw.GITHUB_TARGETS?.trim();
+  if (targets) {
+    return targets.split(',').map((t) => t.trim()).filter((t) => t.length > 0);
+  }
+  const legacy = raw.GITHUB_ORG?.trim();
+  if (legacy) {
+    return [legacy];
+  }
+  return [];
+}
+
+const authEnabledSchema = z.enum(['true', 'false']).default('true');
+
+const envSchemaBase = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3001'),
   DATABASE_URL: z.string().optional(),
-  
+
   // Logging configuration
   LOG_LEVEL: z.enum(['DEBUG', 'INFO', 'WARN', 'ERROR', 'NONE']).default('INFO'),
-  
-  // GitHub API access (for reading repositories and data)
-  GITHUB_TOKEN: z.string(),
-  GITHUB_ORG: z.string(),
-  
-  // GitHub OAuth App (for user authentication)
-  GITHUB_AUTH_CLIENT_ID: z.string(),
-  GITHUB_AUTH_CLIENT_SECRET: z.string(),
-  
-  // Session configuration
-  SESSION_SECRET: z.string(),
-  
+
+  // GitHub API token (scanner / server-to-server operations)
+  GITHUB_TOKEN: z.string().min(1),
+
+  /** Comma-separated logins or org names to scan */
+  GITHUB_TARGETS: z.string().optional(),
+  /** Legacy single org / user slug (fallback if GITHUB_TARGETS unset) */
+  GITHUB_ORG: z.string().optional(),
+
+  /** When false, OAuth is not used; API accepts requests without logged-in GitHub identity */
+  AUTH_ENABLED: authEnabledSchema,
+
+  GITHUB_AUTH_CLIENT_ID: z.string().optional(),
+  GITHUB_AUTH_CLIENT_SECRET: z.string().optional(),
+  /** GitHub team slug within each organization target; if unset, OAuth allows any member of the org */
+  GITHUB_AUTH_TEAM_SLUG: z.string().optional(),
+
+  SESSION_SECRET: z.string().min(1),
+
   FRONTEND_URL: z.string().default('http://localhost:5173'),
 
   // Storage mode: 'database' or 'memory' (default: memory for easy startup)
@@ -50,12 +75,41 @@ const envSchema = z.object({
   USE_REDIS: z.enum(['true', 'false']).default('false'),
 });
 
+const envSchema = envSchemaBase.superRefine((data, ctx) => {
+  const targets = parseGithubTargetLoginList(data);
+  if (targets.length === 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Set GITHUB_TARGETS (comma-separated) and/or GITHUB_ORG to at least one owner',
+      path: ['GITHUB_TARGETS'],
+    });
+  }
+
+  if (data.AUTH_ENABLED === 'true') {
+    if (!data.GITHUB_AUTH_CLIENT_ID?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'GITHUB_AUTH_CLIENT_ID is required when AUTH_ENABLED=true',
+        path: ['GITHUB_AUTH_CLIENT_ID'],
+      });
+    }
+    if (!data.GITHUB_AUTH_CLIENT_SECRET?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'GITHUB_AUTH_CLIENT_SECRET is required when AUTH_ENABLED=true',
+        path: ['GITHUB_AUTH_CLIENT_SECRET'],
+      });
+    }
+  }
+});
+
 export const env = envSchema.parse(process.env);
 
 // Determine storage mode: use database only if explicitly set AND DATABASE_URL is provided
-const effectiveStorageMode = env.STORAGE_MODE === 'database' && env.DATABASE_URL
-  ? 'database'
-  : 'memory';
+const effectiveStorageMode =
+  env.STORAGE_MODE === 'database' && env.DATABASE_URL ? 'database' : 'memory';
+
+const githubTargets = parseGithubTargetLoginList(env);
 
 export const config = {
   nodeEnv: env.NODE_ENV,
@@ -67,11 +121,17 @@ export const config = {
   },
   github: {
     token: env.GITHUB_TOKEN,
-    org: env.GITHUB_ORG,
+    /** Normalized list of org and/or user slugs to scan */
+    targets: githubTargets,
+    /** @deprecated first target only — use `targets` */
+    org: githubTargets[0] ?? '',
   },
   auth: {
-    clientId: env.GITHUB_AUTH_CLIENT_ID,
-    clientSecret: env.GITHUB_AUTH_CLIENT_SECRET,
+    enabled: env.AUTH_ENABLED === 'true',
+    clientId: env.GITHUB_AUTH_CLIENT_ID?.trim() ?? '',
+    clientSecret: env.GITHUB_AUTH_CLIENT_SECRET?.trim() ?? '',
+    /** Trimmed team slug, or empty string to enforce org membership only */
+    teamSlug: env.GITHUB_AUTH_TEAM_SLUG?.trim() ?? '',
     sessionSecret: env.SESSION_SECRET,
   },
   frontendUrl: env.FRONTEND_URL,
@@ -83,7 +143,9 @@ export const config = {
   },
   scan: {
     specificRepos: env.SCAN_REPOS
-      ? env.SCAN_REPOS.split(',').map(r => r.trim()).filter(r => r.length > 0)
+      ? env.SCAN_REPOS.split(',')
+          .map((r) => r.trim())
+          .filter((r) => r.length > 0)
       : undefined,
   },
   redis: {

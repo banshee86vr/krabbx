@@ -1,7 +1,7 @@
 import { Octokit } from '@octokit/rest';
 import { config } from '../config/env.js';
 
-interface GitHubRepository {
+export interface GitHubRepository {
   id: number;
   name: string;
   full_name: string;
@@ -10,6 +10,8 @@ interface GitHubRepository {
   html_url: string;
   archived: boolean | undefined;
   private: boolean;
+  /** Repository owner login (org or user) */
+  ownerLogin: string;
 }
 
 interface RenovateConfig {
@@ -41,13 +43,11 @@ interface DependencyFromPR {
 
 export class GitHubService {
   private octokit: Octokit;
-  private org: string;
   private cache: Map<string, { data: unknown; timestamp: number }> = new Map();
   private cacheTTL = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
     this.octokit = new Octokit({ auth: config.github.token });
-    this.org = config.github.org;
   }
 
   private getCached<T>(key: string): T | null {
@@ -62,8 +62,33 @@ export class GitHubService {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
-  async getOrganizationRepositories(): Promise<GitHubRepository[]> {
-    const cacheKey = `repos:${this.org}`;
+  private mapRestRepo(repo: {
+    id: number;
+    name: string;
+    full_name: string;
+    description: string | null;
+    default_branch?: string | null;
+    html_url: string;
+    archived?: boolean | null;
+    private: boolean;
+    owner?: { login?: string | null } | null;
+  }, fallbackOwner: string): GitHubRepository {
+    return {
+      id: repo.id,
+      name: repo.name,
+      full_name: repo.full_name,
+      description: repo.description,
+      default_branch: repo.default_branch ?? undefined,
+      html_url: repo.html_url,
+      archived: repo.archived ?? undefined,
+      private: repo.private,
+      ownerLogin: repo.owner?.login ?? fallbackOwner,
+    };
+  }
+
+  /** Repositories under one organization target */
+  private async listRepositoriesForOrganization(org: string): Promise<GitHubRepository[]> {
+    const cacheKey = `repos:org:${org}`;
     const cached = this.getCached<GitHubRepository[]>(cacheKey);
     if (cached) return cached;
 
@@ -71,75 +96,136 @@ export class GitHubService {
     let page = 1;
     const perPage = 100;
 
-    // Try listForOrg first (requires org admin read permission)
     try {
       while (true) {
         const response = await this.octokit.rest.repos.listForOrg({
-          org: this.org,
+          org,
           type: 'all',
           per_page: perPage,
           page,
         });
 
-        repos.push(...response.data.map(repo => ({
-          id: repo.id,
-          name: repo.name,
-          full_name: repo.full_name,
-          description: repo.description,
-          default_branch: repo.default_branch,
-          html_url: repo.html_url,
-          archived: repo.archived,
-          private: repo.private,
-        })));
+        repos.push(...response.data.map((r) => this.mapRestRepo(r, org)));
 
         if (response.data.length < perPage) break;
         page++;
       }
-      console.log(`[GitHub] listForOrg returned ${repos.length} repositories`);
+      console.log(`[GitHub] listForOrg(${org}) returned ${repos.length} repositories`);
     } catch (error) {
-      console.log(`[GitHub] listForOrg failed:`, error);
+      console.log(`[GitHub] listForOrg(${org}) failed:`, error);
     }
 
-    // If listForOrg returned no repos, try listing repos accessible to the token
     if (repos.length === 0) {
-      console.log(`[GitHub] Trying listForAuthenticatedUser fallback...`);
+      console.log(`[GitHub] Trying listForAuthenticatedUser fallback for org ${org}...`);
       page = 1;
-
       while (true) {
         const response = await this.octokit.rest.repos.listForAuthenticatedUser({
           per_page: perPage,
           page,
         });
 
-        const owners = [...new Set(response.data.map(r => r.owner?.login))];
-        console.log(`[GitHub] listForAuthenticatedUser page ${page}: ${response.data.length} repos, owners: ${owners.join(', ')}, looking for: ${this.org}`);
-
-        const orgRepos = response.data
-          .filter(repo => repo.owner?.login?.toLowerCase() === this.org.toLowerCase())
-          .map(repo => ({
-            id: repo.id,
-            name: repo.name,
-            full_name: repo.full_name,
-            description: repo.description,
-            default_branch: repo.default_branch,
-            html_url: repo.html_url,
-            archived: repo.archived,
-            private: repo.private,
-          }));
-
-        repos.push(...orgRepos);
+        const filtered = response.data.filter(
+          (repo) => repo.owner?.login?.toLowerCase() === org.toLowerCase()
+        );
+        repos.push(...filtered.map((r) => this.mapRestRepo(r, org)));
 
         if (response.data.length < perPage) break;
         page++;
       }
     }
 
-    console.log(`[GitHub] Found ${repos.length} repositories for org ${this.org}`);
     this.setCache(cacheKey, repos);
     return repos;
   }
 
-  async checkRenovateConfig(repoName: string): Promise<RenovateConfig | null> {
+  /** Repositories owned by one user login */
+  private async listRepositoriesForUser(userLogin: string): Promise<GitHubRepository[]> {
+    const cacheKey = `repos:user:${userLogin}`;
+    const cached = this.getCached<GitHubRepository[]>(cacheKey);
+    if (cached) return cached;
+
+    const repos: GitHubRepository[] = [];
+    let page = 1;
+    const perPage = 100;
+
+    try {
+      while (true) {
+        const response = await this.octokit.rest.repos.listForUser({
+          username: userLogin,
+          type: 'all',
+          sort: 'full_name',
+          direction: 'asc',
+          per_page: perPage,
+          page,
+        });
+
+        repos.push(...response.data.map((r) => this.mapRestRepo(r, userLogin)));
+
+        if (response.data.length < perPage) break;
+        page++;
+      }
+    } catch (error) {
+      console.log(`[GitHub] listForUser(${userLogin}) failed:`, error);
+    }
+
+    if (repos.length === 0) {
+      console.log(`[GitHub] Trying authenticated-user fallback for user ${userLogin}...`);
+      page = 1;
+      while (true) {
+        const response = await this.octokit.rest.repos.listForAuthenticatedUser({
+          per_page: perPage,
+          page,
+        });
+        repos.push(
+          ...response.data
+            .filter((repo) => repo.owner?.login?.toLowerCase() === userLogin.toLowerCase())
+            .map((r) => this.mapRestRepo(r, userLogin))
+        );
+        if (response.data.length < perPage) break;
+        page++;
+      }
+    }
+
+    this.setCache(cacheKey, repos);
+    return repos;
+  }
+
+  /**
+   * All repositories for configured GitHub targets (orgs and/or users), deduped by GitHub repo id.
+   */
+  async getOrganizationRepositories(): Promise<GitHubRepository[]> {
+    const cacheKey = `repos:combined:${config.github.targets.join('|')}`;
+    const cached = this.getCached<GitHubRepository[]>(cacheKey);
+    if (cached) return cached;
+
+    const merged: GitHubRepository[] = [];
+    for (const slug of config.github.targets) {
+      try {
+        const { data: acct } = await this.octokit.rest.users.getByUsername({ username: slug });
+        const repos =
+          acct.type === 'Organization'
+            ? await this.listRepositoriesForOrganization(slug)
+            : await this.listRepositoriesForUser(slug);
+        merged.push(...repos);
+      } catch (e) {
+        console.error(`[GitHub] Failed to resolve target '${slug}'. Check slug/token scopes.`, e);
+      }
+    }
+
+    const byId = new Map<number, GitHubRepository>();
+    for (const repo of merged) {
+      byId.set(repo.id, repo);
+    }
+    const deduped = [...byId.values()];
+    console.log(
+      `[GitHub] Resolved ${deduped.length} unique repos across targets: ${config.github.targets.join(', ')}`
+    );
+
+    this.setCache(cacheKey, deduped);
+    return deduped;
+  }
+
+  async checkRenovateConfig(owner: string, repoName: string): Promise<RenovateConfig | null> {
     const possiblePaths = [
       'renovate.json',
       'renovate.json5',
@@ -152,7 +238,7 @@ export class GitHubService {
     for (const path of possiblePaths) {
       try {
         const response = await this.octokit.rest.repos.getContent({
-          owner: this.org,
+          owner,
           repo: repoName,
           path,
         });
@@ -169,7 +255,7 @@ export class GitHubService {
     // Check package.json for renovate config
     try {
       const response = await this.octokit.rest.repos.getContent({
-        owner: this.org,
+        owner,
         repo: repoName,
         path: 'package.json',
       });
@@ -188,11 +274,11 @@ export class GitHubService {
     return null;
   }
 
-  async checkRenovateWorkflow(repoName: string): Promise<boolean> {
+  async checkRenovateWorkflow(owner: string, repoName: string): Promise<boolean> {
     try {
       // Check for workflows that call the shared renovate workflow
       const response = await this.octokit.rest.repos.getContent({
-        owner: this.org,
+        owner,
         repo: repoName,
         path: '.github/workflows',
       });
@@ -206,7 +292,7 @@ export class GitHubService {
         if (file.type === 'file' && (file.name?.endsWith('.yml') || file.name?.endsWith('.yaml'))) {
           try {
             const workflowResponse = await this.octokit.rest.repos.getContent({
-              owner: this.org,
+              owner,
               repo: repoName,
               path: `.github/workflows/${file.name}`,
             });
@@ -232,8 +318,8 @@ export class GitHubService {
     }
   }
 
-  async getRenovatePRs(repoName: string): Promise<RenovatePR[]> {
-    const cacheKey = `prs:${this.org}:${repoName}`;
+  async getRenovatePRs(owner: string, repoName: string): Promise<RenovatePR[]> {
+    const cacheKey = `prs:${owner}:${repoName}`;
     const cached = this.getCached<RenovatePR[]>(cacheKey);
     if (cached) return cached;
 
@@ -245,7 +331,7 @@ export class GitHubService {
       // Paginate through open PRs to find dependencies from renovate bot
       while (true) {
         const response = await this.octokit.rest.pulls.list({
-          owner: this.org,
+          owner,
           repo: repoName,
           state: 'open',
           per_page: perPage,
@@ -326,11 +412,12 @@ export class GitHubService {
     if (!pr.body) return unknown;
 
     const escapedPackageName = packageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const body = pr.body;
 
     // Pattern 1: Markdown table format (primary - used in most Renovate PRs)
     // Matches: `workflows-v2.10.4` -> `workflows-v2.11.2`
     const tablePattern = /\`([^\`]+)\`\s*->\s*\`([^\`]+)\`/;
-    const tableMatch = pr.body.match(tablePattern);
+    const tableMatch = body.match(tablePattern);
     if (tableMatch?.[1] && tableMatch?.[2]) {
       return {
         current: tableMatch[1].trim(),
@@ -338,10 +425,41 @@ export class GitHubService {
       };
     }
 
+    // Pattern 1b: Renovate markdown table row with "Package | Change" columns.
+    // Example:
+    // | [postcss](...) | 8.5.9 -> 8.5.10 |
+    // | [postcss](...) | `8.5.9` -> `8.5.10` |
+    // | [postcss](...) | <code>8.5.9</code> -> <code>8.5.10</code> |
+    const normalizeVersionToken = (value: string): string =>
+      value.replace(/<code>/gi, '').replace(/<\/code>/gi, '').replace(/`/g, '').trim();
+
+    const rowPattern = new RegExp(
+      `^\\|\\s*[^|]*${escapedPackageName}[^|]*\\|\\s*([^|]+?)\\|`,
+      'i'
+    );
+
+    for (const line of body.split('\n')) {
+      if (!line.includes('|')) continue;
+      const rowMatch = line.match(rowPattern);
+      if (!rowMatch?.[1]) continue;
+
+      const changeCell = rowMatch[1].trim();
+      const arrowMatch = changeCell.match(
+        /(?:`|<code>)?([^`<>\s|]+(?:\s*[^`<>|]*?)?)(?:`|<\/code>)?\s*(?:->|→)\s*(?:`|<code>)?([^`<>\s|]+(?:\s*[^`<>|]*?)?)(?:`|<\/code>)?/i
+      );
+
+      if (arrowMatch?.[1] && arrowMatch?.[2]) {
+        return {
+          current: normalizeVersionToken(arrowMatch[1]),
+          new: normalizeVersionToken(arrowMatch[2]),
+        };
+      }
+    }
+
     // Pattern 2: Bullet list format with backticks and "to"
     // Matches: - `package` from `v1.0.0` to `v2.0.0`
     const bulletPattern1 = new RegExp(`-\\s*\\\`${escapedPackageName}\\\`\\s+from\\s+\\\`([^\\\`]+)\\\`\\s+to\\s+\\\`([^\\\`]+)\\\``, 'i');
-    const bulletMatch1 = pr.body.match(bulletPattern1);
+    const bulletMatch1 = body.match(bulletPattern1);
     if (bulletMatch1?.[1] && bulletMatch1?.[2]) {
       return {
         current: bulletMatch1[1].trim(),
@@ -352,7 +470,7 @@ export class GitHubService {
     // Pattern 3: Bullet list format with backticks but no "to"
     // Matches: - `package` from `v1.0.0`
     const bulletPattern2 = new RegExp(`-\\s*\\\`${escapedPackageName}\\\`\\s+from\\s+\\\`([^\\\`]+)\\\``, 'i');
-    const bulletMatch2 = pr.body.match(bulletPattern2);
+    const bulletMatch2 = body.match(bulletPattern2);
     if (bulletMatch2?.[1]) {
       return { current: bulletMatch2[1].trim(), new: 'unknown' };
     }
@@ -360,7 +478,7 @@ export class GitHubService {
     // Pattern 4: Bullet list without backticks on version
     // Matches: - `package` from v1.0.0
     const bulletPattern3 = new RegExp(`-\\s*\\\`${escapedPackageName}\\\`\\s+from\\s+([\\w.~><=]+)`, 'i');
-    const bulletMatch3 = pr.body.match(bulletPattern3);
+    const bulletMatch3 = body.match(bulletPattern3);
     if (bulletMatch3?.[1]) {
       return { current: bulletMatch3[1].trim(), new: 'unknown' };
     }
@@ -368,7 +486,7 @@ export class GitHubService {
     // Pattern 5: Arrow format without backticks (for Terraform providers with constraints)
     // Matches: azuread: >= 2.0.0 -> >= 3.0.0 or azuread: ~> 2.0 -> ~> 3.0
     const arrowPattern = new RegExp(`${escapedPackageName}[:\\s]+([\\w.~><=]+)\\s*->\\s*([\\w.~><=]+)`, 'i');
-    const arrowMatch = pr.body.match(arrowPattern);
+    const arrowMatch = body.match(arrowPattern);
     if (arrowMatch?.[1] && arrowMatch?.[2]) {
       return {
         current: arrowMatch[1].trim(),
@@ -379,7 +497,7 @@ export class GitHubService {
     // Pattern 6: Markdown code block format with version range
     // Matches: from `>= 2.0` to `>= 3.0` in any context
     const codeBlockPattern = /from\s+[`"]?([\\w.~><=]+)[`"]?\s+to\s+[`"]?([\\w.~><=]+)[`"]?/i;
-    const codeBlockMatch = pr.body.match(codeBlockPattern);
+    const codeBlockMatch = body.match(codeBlockPattern);
     if (codeBlockMatch?.[1] && codeBlockMatch?.[2]) {
       return {
         current: codeBlockMatch[1].trim(),
@@ -817,12 +935,12 @@ export class GitHubService {
     return null;
   }
 
-  async getDependenciesFromPRs(repoName: string): Promise<DependencyFromPR[]> {
-    const prs = await this.getRenovatePRs(repoName);
+  async getDependenciesFromPRs(owner: string, repoName: string): Promise<DependencyFromPR[]> {
+    const prs = await this.getRenovatePRs(owner, repoName);
     const dependencies: DependencyFromPR[] = [];
     const filteredPRs: { number: number; title: string; reason: string }[] = [];
 
-    console.log(`[GitHub Service] Processing ${prs.length} PRs for ${repoName}`);
+    console.log(`[GitHub Service] Processing ${prs.length} PRs for ${owner}/${repoName}`);
 
     for (const pr of prs) {
       const dep = this.parseDependencyFromPRTitle(pr);
@@ -841,9 +959,9 @@ export class GitHubService {
     }
 
     // Log summary of filtered PRs
-    console.log(`[GitHub Service] ${repoName}: ${dependencies.length}/${prs.length} PRs parsed successfully`);
+    console.log(`[GitHub Service] ${owner}/${repoName}: ${dependencies.length}/${prs.length} PRs parsed successfully`);
     if (filteredPRs.length > 0) {
-      console.warn(`[GitHub Service] ${repoName}: ${filteredPRs.length} of ${prs.length} Renovate PRs filtered out (missing version extraction)`);
+      console.warn(`[GitHub Service] ${owner}/${repoName}: ${filteredPRs.length} of ${prs.length} Renovate PRs filtered out (missing version extraction)`);
       filteredPRs.forEach(pr => {
         console.warn(`  - PR #${pr.number}: "${pr.title}"`);
       });
@@ -864,13 +982,13 @@ export class GitHubService {
   /**
    * Get top contributors for a repository
    */
-  async getRepositoryContributors(repoName: string, limit = 5): Promise<Array<{
+  async getRepositoryContributors(owner: string, repoName: string, limit = 5): Promise<Array<{
     login: string;
     avatarUrl: string;
     profileUrl: string;
     contributions: number;
   }>> {
-    const cacheKey = `contributors:${repoName}`;
+    const cacheKey = `contributors:${owner}:${repoName}`;
     const cached = this.getCached<Array<{
       login: string;
       avatarUrl: string;
@@ -881,7 +999,7 @@ export class GitHubService {
 
     try {
       const { data } = await this.octokit.rest.repos.listContributors({
-        owner: this.org,
+        owner,
         repo: repoName,
         per_page: limit,
       });
