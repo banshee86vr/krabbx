@@ -26,7 +26,8 @@
   },
   "pnpm": {
     "overrides": {
-      "defu": ">=6.1.5"
+      "defu": ">=6.1.5",
+      "picomatch": ">=4.0.4"
     },
     "onlyBuiltDependencies": [
       "@prisma/client",

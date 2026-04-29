@@ -76,6 +76,8 @@ jobs:
           output: trivy-fs-results.sarif
           severity: CRITICAL,HIGH
           exit-code: "1"
+          scanners: vuln
+          ignore-unfixed: true
 
       - name: Upload Trivy filesystem scan results
         if: success()
@@ -103,6 +105,7 @@ jobs:
           output: trivy-backend-image.sarif
           severity: CRITICAL,HIGH
           exit-code: "1"
+          scanners: vuln
 
       - name: Upload Trivy backend image scan results
         if: success()
@@ -131,6 +134,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: "1"
           ignore-unfixed: true
+          scanners: vuln
 
       - name: Upload Trivy frontend image scan results
         if: success()

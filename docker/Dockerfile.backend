@@ -33,7 +33,7 @@ WORKDIR /workspace
 
 # Install runtime dependencies
 RUN apk add --no-cache openssl wget && \
-    npm install -g pnpm@10
+    npm install -g npm@latest pnpm@10
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
