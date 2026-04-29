@@ -1,4 +1,5 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import type { Request } from 'express';
 import { config } from '../config/env.js';
 
 // General API rate limiter - 100 requests per 15 minutes per IP
@@ -12,6 +13,14 @@ export const apiLimiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skip: () => config.nodeEnv === 'development', // Skip rate limiting in development
+  keyGenerator: (req: Request): string => {
+    const u = req.session?.user;
+    if (u?.id != null) {
+      return `user:${u.id}`;
+    }
+    const ip = req.ip ?? 'unknown';
+    return ipKeyGenerator(ip);
+  },
 });
 
 // Stricter rate limiter for authentication endpoints - 5 requests per 15 minutes per IP
@@ -38,5 +47,13 @@ export const scanLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => config.nodeEnv === 'development',
+  keyGenerator: (req: Request): string => {
+    const u = req.session?.user;
+    if (u?.id != null) {
+      return `scan:user:${u.id}`;
+    }
+    const ip = req.ip ?? 'unknown';
+    return `scan:${ipKeyGenerator(ip)}`;
+  },
 });
 

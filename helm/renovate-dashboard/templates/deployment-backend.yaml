@@ -28,6 +28,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "renovate-dashboard.serviceAccountName" . }}
+      automountServiceAccountToken: false
       securityContext:
         {{- toYaml .Values.backend.podSecurityContext | nindent 8 }}
       {{- if .Values.initContainers }}
@@ -106,6 +107,23 @@ spec:
                 configMapKeyRef:
                   name: {{ include "renovate-dashboard.fullname" . }}
                   key: GITHUB_AUTH_TEAM_SLUG
+            - name: TRUST_PROXY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: TRUST_PROXY
+            - name: ALLOW_INSECURE_NOAUTH
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: ALLOW_INSECURE_NOAUTH
+            {{- if .Values.backend.security.sessionCookieSecure }}
+            - name: SESSION_COOKIE_SECURE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "renovate-dashboard.fullname" . }}
+                  key: SESSION_COOKIE_SECURE
+            {{- end }}
             {{- if .Values.backend.scanRepos }}
             - name: SCAN_REPOS
               valueFrom:

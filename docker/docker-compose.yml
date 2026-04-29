@@ -8,12 +8,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-renovate_dashboard}
+    # Postgres 18+ images expect a single mount at /var/lib/postgresql (not .../data only).
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,7 +28,7 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -49,7 +50,8 @@ services:
       redis:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      # Override via NODE_ENV=development for local/demo stacks with AUTH_ENABLED=false (disallowed when production).
+      NODE_ENV: ${NODE_ENV:-production}
       PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-renovate_dashboard}
       REDIS_URL: redis://redis:6379
@@ -57,15 +59,18 @@ services:
       GITHUB_ORG: ${GITHUB_ORG:-}
       GITHUB_TARGETS: ${GITHUB_TARGETS:-}
       AUTH_ENABLED: ${AUTH_ENABLED:-true}
+      ALLOW_INSECURE_NOAUTH: ${ALLOW_INSECURE_NOAUTH:-false}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       GITHUB_AUTH_CLIENT_ID: ${GITHUB_AUTH_CLIENT_ID:-}
       GITHUB_AUTH_CLIENT_SECRET: ${GITHUB_AUTH_CLIENT_SECRET:-}
       GITHUB_AUTH_TEAM_SLUG: ${GITHUB_AUTH_TEAM_SLUG:-}
       SESSION_SECRET: ${SESSION_SECRET}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
       SCAN_INTERVAL_MINUTES: ${SCAN_INTERVAL_MINUTES:-60}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s
@@ -82,7 +87,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "5173:8080"  # Map host port 5173 to container port 8080 (non-root user)
+      - "127.0.0.1:5173:8080"  # Map host port 5173 to container port 8080 (non-root user)
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
       interval: 30s

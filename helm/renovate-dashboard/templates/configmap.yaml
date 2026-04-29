@@ -30,6 +30,11 @@ data:
   GITHUB_ORG: {{ trim (index (splitList "," $targets) 0) | quote }}
   {{- end }}
   GITHUB_AUTH_TEAM_SLUG: {{ default "" .Values.backend.github.authTeamSlug | quote }}
+  TRUST_PROXY: {{ .Values.backend.security.trustProxy | quote }}
+  ALLOW_INSECURE_NOAUTH: {{ ternary "true" "false" .Values.backend.security.allowInsecureNoauth | quote }}
+  {{- if .Values.backend.security.sessionCookieSecure }}
+  SESSION_COOKIE_SECURE: {{ .Values.backend.security.sessionCookieSecure | quote }}
+  {{- end }}
   {{- if .Values.backend.scanRepos }}
   SCAN_REPOS: {{ .Values.backend.scanRepos | quote }}
   {{- end }}

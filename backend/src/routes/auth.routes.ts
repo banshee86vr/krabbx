@@ -1,9 +1,20 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Octokit } from '@octokit/rest';
+import { randomBytes } from 'node:crypto';
 import { config } from '../config/env.js';
+import { issueCsrfToken } from '../middleware/csrf.js';
 import { logger } from '../lib/logger.js';
 
 const router = Router();
+
+function getOAuthCallbackUrl(req: Request): string {
+  const trusted = Boolean(config.security.trustProxy);
+  const host = trusted ? req.get('x-forwarded-host') || req.get('host') : req.get('host');
+  const protoHeader = req.get('x-forwarded-proto');
+  const protocol =
+    trusted && protoHeader ? protoHeader.split(',')[0]!.trim() : req.protocol;
+  return `${protocol}://${host}/api/auth/callback`;
+}
 
 // GitHub OAuth configuration
 const GITHUB_AUTH_URL = 'https://github.com/login/oauth/authorize';
@@ -21,6 +32,7 @@ declare module 'express-session' {
       accessToken: string;
     };
     oauthState?: string;
+    csrfSecret?: string;
   }
 }
 
@@ -31,8 +43,8 @@ router.get('/login', (req: Request, res: Response) => {
     return;
   }
 
-  const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/callback`;
-  const state = Math.random().toString(36).substring(7);
+  const redirectUri = getOAuthCallbackUrl(req);
+  const state = randomBytes(32).toString('hex');
   
   // Store state in session for verification
   req.session.oauthState = state;
@@ -125,9 +137,8 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
     // Get user emails
     const { data: emails } = await octokit.users.listEmailsForAuthenticated();
     const primaryEmail = emails.find(e => e.primary)?.email || emails[0]?.email || '';
-    
-    // Store user in session
-    req.session.user = {
+
+    const userSession = {
       id: user.id,
       login: user.login,
       name: user.name || user.login,
@@ -135,13 +146,24 @@ router.get('/callback', async (req: Request, res: Response, next: NextFunction) 
       avatar_url: user.avatar_url,
       accessToken,
     };
-    
+
+    await new Promise<void>((resolve, reject) => {
+      req.session.regenerate((err) => (err ? reject(err) : resolve()));
+    });
+
+    req.session.user = userSession;
+
     // Redirect to frontend
     res.redirect(config.frontendUrl);
   } catch (error) {
     logger.error('OAuth callback error', error);
     next(error);
   }
+});
+
+// GET /api/auth/csrf - CSRF token for mutating API requests
+router.get('/csrf', (req: Request, res: Response) => {
+  res.json({ csrfToken: issueCsrfToken(req) });
 });
 
 // GET /api/auth/status - Get current user status
@@ -157,6 +179,7 @@ router.get('/status', (req: Request, res: Response) => {
         email: '',
         avatar_url: '',
       },
+      csrfToken: issueCsrfToken(req),
     });
     return;
   }
@@ -164,9 +187,17 @@ router.get('/status', (req: Request, res: Response) => {
   if (req.session.user) {
     // Don't send the access token to the frontend
     const { accessToken: _accessToken, ...userWithoutToken } = req.session.user;
-    res.json({ authenticated: true, user: userWithoutToken });
+    res.json({
+      authenticated: true,
+      user: userWithoutToken,
+      csrfToken: issueCsrfToken(req),
+    });
   } else {
-    res.json({ authenticated: false, user: null });
+    res.json({
+      authenticated: false,
+      user: null,
+      csrfToken: issueCsrfToken(req),
+    });
   }
 });
 
@@ -177,7 +208,12 @@ router.post('/logout', (req: Request, res: Response): void => {
       res.status(500).json({ error: 'Failed to logout' });
       return;
     }
-    res.clearCookie('sessionId'); // Match the custom session name
+    res.clearCookie('sessionId', {
+      httpOnly: true,
+      secure: config.security.sessionCookieSecure,
+      sameSite: 'lax',
+      path: '/',
+    });
     res.json({ message: 'Logged out successfully' });
   });
 });

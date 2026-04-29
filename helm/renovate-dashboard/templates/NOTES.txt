@@ -58,7 +58,7 @@ COMPONENTS:
 ✓ Redis Cache
 {{- end }}
 {{- if .Values.migration.enabled }}
-✓ Database Migrations (pre-install/pre-upgrade hook)
+✓ Database Migrations (post-install/post-upgrade hook)
 {{- end }}
 
 MONITORING:

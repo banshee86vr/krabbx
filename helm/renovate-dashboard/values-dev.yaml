@@ -58,7 +58,7 @@ backend:
   
   # Set these values for development
   github:
-    token: "ghp_your_dev_token"
+    token: "replace-with-a-development-github-token"
     org: "your-test-org"
     authClientId: "your_dev_oauth_client_id"
     authClientSecret: "your_dev_oauth_client_secret"

@@ -79,9 +79,20 @@ spec:
       ports:
       - protocol: TCP
         port: {{ .Values.redis.service.port }}
-    # Allow external access (GitHub API, SMTP, etc.)
+    # Allow external access (GitHub API on HTTPS when backendEgressHttpsOnly)
+    {{- if .Values.networkPolicy.backendEgressHttpsOnly }}
+    - ports:
+      - protocol: TCP
+        port: 443
+      to:
+      {{- range .Values.networkPolicy.backendEgressCidrs }}
+      - ipBlock:
+          cidr: {{ . | quote }}
+      {{- end }}
+    {{- else }}
     - to:
       - namespaceSelector: {}
+    {{- end }}
     {{- toYaml .Values.networkPolicy.egress | nindent 4 }}
 ---
 apiVersion: networking.k8s.io/v1
@@ -127,5 +138,39 @@ spec:
       ports:
       - protocol: TCP
         port: 6379
+{{- if and .Values.migration.enabled .Values.postgresql.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-migration
+  labels:
+    {{- include "renovate-dashboard.backend.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "renovate-dashboard.backend.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: migration
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress:
+    - to:
+      - namespaceSelector: {}
+      ports:
+      - protocol: TCP
+        port: 53
+      - protocol: UDP
+        port: 53
+    - to:
+      - podSelector:
+          matchLabels:
+            {{- include "renovate-dashboard.postgresql.selectorLabels" . | nindent 12 }}
+      ports:
+      - protocol: TCP
+        port: {{ .Values.postgresql.service.port }}
+{{- end }}
 {{- end }}
 

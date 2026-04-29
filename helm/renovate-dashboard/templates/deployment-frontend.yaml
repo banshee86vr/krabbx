@@ -14,10 +14,13 @@ spec:
       {{- include "renovate-dashboard.frontend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.frontend.podAnnotations }}
       annotations:
+        {{- if .Values.backend.enabled }}
+        checksum/nginx-site: {{ include "renovate-dashboard.frontendNginxConf" . | sha256sum }}
+        {{- end }}
+        {{- with .Values.frontend.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       labels:
         {{- include "renovate-dashboard.frontend.selectorLabels" . | nindent 8 }}
     spec:
@@ -26,14 +29,40 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "renovate-dashboard.serviceAccountName" . }}
+      automountServiceAccountToken: false
       securityContext:
         {{- toYaml .Values.frontend.podSecurityContext | nindent 8 }}
+      volumes:
+        {{- if .Values.backend.enabled }}
+        - name: nginx-site-config
+          configMap:
+            name: {{ include "renovate-dashboard.fullname" . }}-frontend-nginx
+        {{- end }}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: nginx-tmp
+          emptyDir: {}
       containers:
         - name: frontend
           image: {{ include "renovate-dashboard.frontend.image" . }}
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.frontend.securityContext | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.backend.enabled }}
+            - name: nginx-site-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+              readOnly: true
+            {{- end }}
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: nginx-tmp
+              mountPath: /tmp
           ports:
             - name: http
               containerPort: {{ .Values.frontend.service.targetPort }}

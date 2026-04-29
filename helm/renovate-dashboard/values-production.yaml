@@ -99,6 +99,11 @@ backend:
     secret: ""  # Set via --set or use existingSecret (will auto-generate if empty)
     # Recommended: Use existing secret
     # existingSecret: renovate-session-secret
+
+  security:
+    trustProxy: "1"
+    allowInsecureNoauth: false
+    sessionCookieSecure: "true"
   
   # Anti-affinity to spread pods across nodes
   affinity:
@@ -222,6 +227,9 @@ serviceAccount:
 
 networkPolicy:
   enabled: true
+  backendEgressHttpsOnly: true
+  backendEgressCidrs:
+    - 0.0.0.0/0
 
 podDisruptionBudget:
   enabled: true

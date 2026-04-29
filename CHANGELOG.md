@@ -7,7 +7,10 @@ All notable changes to the Renovate Bot Dashboard project.
 ### GitHub configuration and scanning
 
 - **Multi-owner scanning**: `GITHUB_TARGETS` accepts a comma-separated list of organization logins and/or GitHub user logins. `GITHUB_ORG` remains supported as a single-owner fallback when `GITHUB_TARGETS` is unset.
-- **Optional OAuth**: `AUTH_ENABLED=false` allows running without GitHub OAuth client credentials; `requireAuth` and `/api/auth/status` treat the instance as accessible without a GitHub login session.
+- **Optional OAuth (non-production only)**: `AUTH_ENABLED=false` requires `ALLOW_INSECURE_NOAUTH=true`. **Not allowed** when `NODE_ENV=production`.
+- **CSRF protection**: Mutating API requests must send `X-CSRF-Token` (provided by `GET /api/auth/status` or `GET /api/auth/csrf`).
+- **Socket.io**: When `AUTH_ENABLED=true`, connections require a valid authenticated session (shared with Express session middleware).
+- **Sessions / cookies**: `TRUST_PROXY`, `SESSION_COOKIE_SECURE`, and `saveUninitialized` anonymous sessions support CSRF before login.
 - **Authorization**: OAuth callback enforces the existing org team check for each configured **organization** target; **user** targets skip team membership.
 - **API / UI**: Settings responses include `github.targets` and `auth.enabled`. Helm and Docker Compose pass `GITHUB_TARGETS`, `AUTH_ENABLED`, and related variables.
 
@@ -29,11 +32,11 @@ All notable changes to the Renovate Bot Dashboard project.
   - Content Security Policy (CSP) configured
   - HTTP Strict Transport Security (HSTS) enabled
   - XSS protection enhanced
-- ✅ **WebSocket Authentication** - Cookie-based session verification
-- ✅ **Session Security Improvements**
-  - Custom session cookie name (`sessionId`)
-  - Production warning for memory-based session store
-  - Enhanced CSRF protection with state cleanup
+- ✅ **WebSocket authentication** — server verifies session before accepting Socket.io connections when auth is enabled
+- ✅ **CSRF tokens** for mutating `/api/*` routes (`csrf` + `X-CSRF-Token` header)
+- ✅ **OAuth hardening** — cryptographic `state`, session regeneration after login, correct callback URL behind `TRUST_PROXY`
+- ✅ **Session cookies** — `Secure` derived from `NODE_ENV` / `SESSION_COOKIE_SECURE`; `clearCookie` matches cookie options
+- ✅ **CI** — Trivy filesystem/images fail on `CRITICAL,HIGH`, gitleaks, Helm lint + `helm install --dry-run`
 - ✅ **Docker Security**
   - Frontend container now runs as non-root user (UID 1001)
   - Backend already used non-root user

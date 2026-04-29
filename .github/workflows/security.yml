@@ -75,7 +75,7 @@ jobs:
           format: sarif
           output: trivy-fs-results.sarif
           severity: CRITICAL,HIGH
-          exit-code: "0"
+          exit-code: "1"
 
       - name: Upload Trivy filesystem scan results
         if: success()
@@ -102,7 +102,7 @@ jobs:
           format: sarif
           output: trivy-backend-image.sarif
           severity: CRITICAL,HIGH
-          exit-code: "0"
+          exit-code: "1"
 
       - name: Upload Trivy backend image scan results
         if: success()
@@ -129,7 +129,7 @@ jobs:
           format: sarif
           output: trivy-frontend-image.sarif
           severity: CRITICAL,HIGH
-          exit-code: "0"
+          exit-code: "1"
           ignore-unfixed: true
 
       - name: Upload Trivy frontend image scan results
@@ -177,3 +177,39 @@ jobs:
 
       - name: Run pnpm audit
         run: pnpm audit --audit-level=high
+
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  helm-validate:
+    name: Helm lint + schema (kubeconform)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Helm lint
+        run: helm lint helm/renovate-dashboard -f helm/renovate-dashboard/values-dev.yaml
+
+      - name: Helm dry-run (full install simulation)
+        run: |
+          helm install --dry-run renovate-ci helm/renovate-dashboard \
+            -f helm/renovate-dashboard/values-dev.yaml \
+            --set backend.github.token=ci-placeholder-not-a-real-secret \
+            --set backend.github.org=example-org \
+            --set backend.session.secret=dev-session-secret-change-me-32chars-xx \
+            --set networkPolicy.enabled=true

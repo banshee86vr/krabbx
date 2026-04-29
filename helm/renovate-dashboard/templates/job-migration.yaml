@@ -8,7 +8,9 @@ metadata:
     app.kubernetes.io/component: migration
   {{- if .Values.migration.hook.enabled }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    # post-install/post-upgrade: runs after ServiceAccount, Secrets, and PostgreSQL are created.
+    # pre-install would run before those resources exist (broken hooks + missing SA).
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-weight": {{ .Values.migration.hook.weight | quote }}
     "helm.sh/hook-delete-policy": {{ .Values.migration.hook.deletePolicy }}
   {{- end }}
@@ -24,23 +26,43 @@ spec:
         app.kubernetes.io/component: migration
     spec:
       restartPolicy: OnFailure
+      automountServiceAccountToken: false
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "renovate-dashboard.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.migration.podSecurityContext | nindent 8 }}
       containers:
         - name: migration
           image: {{ include "renovate-dashboard.backend.image" . }}
           imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.migration.securityContext | nindent 12 }}
           command:
             - sh
             - -c
             - |
+              set -e
+              # Build DATABASE_URL here (PGHOST/PGPORT/PGDATABASE + secrets); encode user/password for URI safety.
+              export DATABASE_URL="$(node -e 'process.stdout.write("postgresql://" + encodeURIComponent(process.env.POSTGRES_USER || "") + ":" + encodeURIComponent(process.env.POSTGRES_PASSWORD || "") + "@" + process.env.PGHOST + ":" + process.env.PGPORT + "/" + process.env.PGDATABASE)')"
+              if [ -z "$DATABASE_URL" ] || [ "$DATABASE_URL" = "postgresql://:@:/" ]; then
+                echo "DATABASE_URL is empty or invalid (check PGHOST/PGPORT/PGDATABASE and postgres secret keys)."
+                exit 1
+              fi
               echo "Running database migrations..."
               cd /workspace/backend
-              pnpm exec prisma migrate deploy
-              echo "Migrations completed successfully"
+              for i in $(seq 1 60); do
+                echo "migrate attempt ${i}/60"
+                if ./node_modules/.bin/prisma migrate deploy; then
+                  echo "Migrations completed successfully"
+                  exit 0
+                fi
+                sleep 5
+              done
+              echo "Migrations failed after retries"
+              exit 1
           env:
             - name: POSTGRES_USER
               valueFrom:
@@ -52,8 +74,12 @@ spec:
                 secretKeyRef:
                   name: {{ include "renovate-dashboard.postgresql.secretName" . }}
                   key: {{ .Values.postgresql.auth.existingSecretKeys.password | default "postgres-password" }}
-            - name: DATABASE_URL
-              value: {{ include "renovate-dashboard.databaseUrl" . | quote }}
+            - name: PGHOST
+              value: {{ include "renovate-dashboard.postgresql.host" . | quote }}
+            - name: PGPORT
+              value: {{ include "renovate-dashboard.postgresql.port" . | quote }}
+            - name: PGDATABASE
+              value: {{ include "renovate-dashboard.postgresql.database" . | quote }}
           resources:
             {{- toYaml .Values.migration.resources | nindent 12 }}
       {{- with .Values.migration.nodeSelector }}

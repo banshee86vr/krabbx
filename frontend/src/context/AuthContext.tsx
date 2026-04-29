@@ -1,5 +1,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
+import { authApiLogout, setCsrfToken } from '../services/api';
+
+function authStatusUrl(): string {
+  const base = import.meta.env.VITE_API_URL;
+  if (base) {
+    return `${String(base).replace(/\/$/, '')}/api/auth/status`;
+  }
+  return '/api/auth/status';
+}
+
 interface User {
   id: number;
   login: string;
@@ -24,12 +34,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/status`, {
+      const response = await fetch(authStatusUrl(), {
         credentials: 'include',
       });
-      
+
       if (response.ok) {
         const data = await response.json();
+        if (typeof data.csrfToken === 'string') {
+          setCsrfToken(data.csrfToken);
+        }
         if (data.authenticated && data.user) {
           setUser(data.user);
         } else {
@@ -48,10 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      await authApiLogout();
       setUser(null);
     } catch (error) {
       console.error('Logout failed:', error);

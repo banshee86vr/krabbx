@@ -22,6 +22,7 @@ if (process.env.VITEST === 'true') {
   process.env.GITHUB_AUTH_CLIENT_ID ||= 'test-oauth-client-id';
   process.env.GITHUB_AUTH_CLIENT_SECRET ||= 'test-oauth-client-secret';
   process.env.AUTH_ENABLED ??= 'true';
+  process.env.NODE_ENV ||= 'test';
 }
 
 /** Comma-separated org or user login slugs, or legacy single org via GITHUB_ORG only */
@@ -88,6 +89,21 @@ const envSchemaBase = z.object({
 
   /** When true, expose /api/dashboard/gamification and enrich repository list with health scores */
   GAMIFICATION_ENABLED: z.enum(['true', 'false']).default('true'),
+
+  /**
+   * Trust `X-Forwarded-*` from reverse proxies (hop count). Use `0`/`false` for local dev without proxy.
+   * In production unset typically implies `1`.
+   */
+  TRUST_PROXY: z.string().optional(),
+
+  /** Explicit opt-in to run with AUTH_ENABLED=false (never allowed in production). */
+  ALLOW_INSECURE_NOAUTH: z.enum(['true', 'false']).default('false'),
+
+  /**
+   * Force Set-Cookie `Secure` on session cookie. Default: same as HTTPS production recommendation (`NODE_ENV=production`).
+   * Set to `false` only for special HTTP-only deployments.
+   */
+  SESSION_COOKIE_SECURE: z.enum(['true', 'false']).optional(),
 });
 
 const envSchema = envSchemaBase.superRefine((data, ctx) => {
@@ -97,6 +113,24 @@ const envSchema = envSchemaBase.superRefine((data, ctx) => {
       code: z.ZodIssueCode.custom,
       message: 'Set GITHUB_TARGETS (comma-separated) and/or GITHUB_ORG to at least one owner',
       path: ['GITHUB_TARGETS'],
+    });
+  }
+
+  if (data.NODE_ENV === 'production' && data.AUTH_ENABLED === 'false') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        'AUTH_ENABLED=false is not allowed in production. Use AUTH_ENABLED=true or run a non-production NODE_ENV.',
+      path: ['AUTH_ENABLED'],
+    });
+  }
+
+  if (data.NODE_ENV !== 'production' && data.AUTH_ENABLED === 'false' && data.ALLOW_INSECURE_NOAUTH !== 'true') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        'When AUTH_ENABLED=false, set ALLOW_INSECURE_NOAUTH=true to acknowledge insecure local/demo use.',
+      path: ['ALLOW_INSECURE_NOAUTH'],
     });
   }
 
@@ -120,6 +154,27 @@ const envSchema = envSchemaBase.superRefine((data, ctx) => {
 
 export const env = envSchema.parse(process.env);
 
+/** Express `trust proxy` setting */
+function resolveTrustProxy(raw: string | undefined, nodeEnv: string): boolean | number | string {
+  if (raw === undefined || raw === '') {
+    return nodeEnv === 'production' ? 1 : false;
+  }
+  const v = raw.trim();
+  if (v === 'false' || v === '0') return false;
+  if (v === 'true') return 1;
+  if (/^\d+$/.test(v)) return parseInt(v, 10);
+  return v;
+}
+
+function resolveSessionCookieSecure(
+  explicit: string | undefined,
+  nodeEnv: string,
+): boolean {
+  if (explicit === 'true') return true;
+  if (explicit === 'false') return false;
+  return nodeEnv === 'production';
+}
+
 // Determine storage mode: use database only if explicitly set AND DATABASE_URL is provided
 const effectiveStorageMode =
   env.STORAGE_MODE === 'database' && env.DATABASE_URL ? 'database' : 'memory';
@@ -131,6 +186,11 @@ export const config = {
   port: parseInt(env.PORT, 10),
   databaseUrl: env.DATABASE_URL,
   storageMode: effectiveStorageMode as 'database' | 'memory',
+  security: {
+    trustProxy: resolveTrustProxy(env.TRUST_PROXY, env.NODE_ENV),
+    allowInsecureNoAuth: env.ALLOW_INSECURE_NOAUTH === 'true',
+    sessionCookieSecure: resolveSessionCookieSecure(env.SESSION_COOKIE_SECURE, env.NODE_ENV),
+  },
   logging: {
     level: env.LOG_LEVEL,
   },

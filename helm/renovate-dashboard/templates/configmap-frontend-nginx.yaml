@@ -1,0 +1,11 @@
+{{- if and .Values.frontend.enabled .Values.backend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "renovate-dashboard.fullname" . }}-frontend-nginx
+  labels:
+    {{- include "renovate-dashboard.frontend.labels" . | nindent 4 }}
+data:
+  default.conf: |
+{{ include "renovate-dashboard.frontendNginxConf" . | nindent 4 }}
+{{- end }}

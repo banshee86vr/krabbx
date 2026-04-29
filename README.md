@@ -373,7 +373,10 @@ pnpm run db:migrate:prod   # Deploy migrations (no prompts)
 | --------------------------- | ----------------------------------------- | ---------------------------------------------------------- |
 | `GITHUB_TOKEN`              | GitHub PAT (`repo`, `read:org`, etc.)     | [Create token](https://github.com/settings/tokens)         |
 | `GITHUB_TARGETS` and/or `GITHUB_ORG` | Owners to scan (comma-separated org/user logins, or single `GITHUB_ORG`) | Your org or username on GitHub |
-| `AUTH_ENABLED`              | When `true`, GitHub OAuth is required for API access | Set `false` only for trusted local/demo use |
+| `AUTH_ENABLED`              | When `true`, GitHub OAuth is required for API access | **`false` only outside production** and with `ALLOW_INSECURE_NOAUTH=true` |
+| `ALLOW_INSECURE_NOAUTH`    | Acknowledges insecure no-OAuth mode (required if `AUTH_ENABLED=false`) | `true` / `false` |
+| `TRUST_PROXY`               | Express trust proxy hops (`0`–`n`) for `X-Forwarded-*` | `1` behind a single reverse proxy |
+| `SESSION_COOKIE_SECURE`     | Force `Secure` on session cookie | Usually omit; use `false` for plain-HTTP local Docker |
 | `GITHUB_AUTH_CLIENT_ID`     | OAuth App Client ID (if `AUTH_ENABLED=true`) | [Create OAuth App](https://github.com/settings/developers) |
 | `GITHUB_AUTH_CLIENT_SECRET` | OAuth App Client Secret (if `AUTH_ENABLED=true`) | Same OAuth App                                             |
 | `GITHUB_AUTH_TEAM_SLUG`     | Optional GitHub team slug for org targets; if unset, org members may sign in | —                                                          |
@@ -444,7 +447,7 @@ Configure notifications for different events:
 - ✅ **CSRF Protection** - OAuth state parameter validation
 - ✅ **Input Validation** - Zod schema validation on all endpoints
 
-See [SECURITY.md](docs/SECURITY.md) for comprehensive security documentation.
+See [SECURITY.md](SECURITY.md) for vulnerability reporting and hardening guidance.
 
 ## API Endpoints
 
@@ -519,8 +522,7 @@ All endpoints require authentication except `/api/auth/*` and `/health`.
 ## Documentation
 
 - 📖 [Local Setup Guide](docs/LOCAL_SETUP.md) - Step-by-step guide to run without database
-- 🔐 [Security Documentation](docs/SECURITY.md) - Comprehensive security guide
-- 📊 [Security Audit Report](docs/SECURITY_AUDIT_REPORT.md) - Latest security audit results
+- 🔐 [Security policy](SECURITY.md) — reporting vulnerabilities and deployment hardening
 - 🏗️ [Implementation Steps](docs/IMPLEMENTATION_STEPS.md) - Development roadmap
 - 🤖 [CLAUDE.md](CLAUDE.md) - AI assistant reference documentation
 
