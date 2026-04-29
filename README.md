@@ -1,8 +1,12 @@
 # Krabbx - Renovate Dashboard
 
+[![CI](https://github.com/banshee86vr/krabbx/actions/workflows/ci.yml/badge.svg)](https://github.com/banshee86vr/krabbx/actions/workflows/ci.yml)
+
+[![Security Scans](https://github.com/banshee86vr/krabbx/actions/workflows/security.yml/badge.svg)](https://github.com/banshee86vr/krabbx/actions/workflows/security.yml)
+
 Krabbx is a self-hosted dashboard for monitoring Renovate adoption and dependency update activity across GitHub organizations and user repositories.
 
-![Dashboard Preview](docs/dashboard-preview.png)
+![Dashboard Preview](docs/dashboard.png)
 
 ## Features
 
@@ -12,6 +16,8 @@ Krabbx is a self-hosted dashboard for monitoring Renovate adoption and dependenc
 - Real-time dashboard updates via Socket.io
 - Memory mode for fast local setup and PostgreSQL mode for persistence
 - Docker and Helm support for production deployments
+
+![Repository Analysis](docs/repository_details.png)
 
 ## Tech Stack
 
