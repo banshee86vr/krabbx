@@ -2,6 +2,14 @@
 @import "@hashicorp/design-system-tokens/dist/products/css/tokens.css";
 @config "../../tailwind.config.js";
 
+@font-face {
+  font-family: "Fira Code";
+  src: url("/fonts/FiraCode-VariableFont_wght.ttf") format("truetype");
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --background: 248 250 252;
@@ -44,9 +52,32 @@
 }
 
 @layer components {
+  /* KrabbX header & shell (project/README.md) */
+  .krx-header {
+    background: linear-gradient(135deg, #312e81 0%, #4338ca 40%, #6366f1 100%);
+  }
+
+  .krx-auth-page-bg {
+    background: linear-gradient(135deg, #eef2ff 0%, #f0fdfa 30%, #f5f3ff 60%, #fff1f2 100%);
+  }
+
+  .krx-mark-gradient {
+    background: linear-gradient(135deg, #4338ca, #6366f1, #a855f7);
+    box-shadow: 0 8px 24px -4px #6366f140;
+  }
+
+  .krx-cta-button {
+    background: linear-gradient(135deg, #4338ca, #6366f1);
+    box-shadow: 0 2px 8px -2px #4338ca40;
+  }
+
+  .krx-logo-tile {
+    background: linear-gradient(135deg, #4338ca, #6366f1);
+  }
+
   .card {
     @apply bg-white rounded-hds-xl;
-    box-shadow: 0 0 0 1px #e2e8f018, 0px 1px 3px 0px #64748b12, 0px 4px 8px -2px #64748b0a;
+    box-shadow: 0 0 0 1px #e2e8f018, 0 1px 3px 0 #64748b12, 0 4px 8px -2px #64748b0a;
   }
 
   .btn {

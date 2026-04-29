@@ -7,6 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        // KrabbX Design System (krabbx.zip / colors_and_type.css) + HDS radius scale
         neutral: {
           0: '#ffffff',
           50: '#f8fafc',
@@ -77,7 +78,7 @@ export default {
       },
       fontFamily: {
         sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica', 'Arial', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'],
-        mono: ['ui-monospace', 'Menlo', 'Consolas', 'monospace'],
+        mono: ['"Fira Code"', 'ui-monospace', 'Menlo', 'Consolas', 'monospace'],
       },
       borderRadius: {
         'hds-xs': '3px',

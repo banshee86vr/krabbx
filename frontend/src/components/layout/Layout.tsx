@@ -40,7 +40,7 @@ export function Layout({ children }: LayoutProps) {
 							width: "min(28rem, calc(100vw - 2rem))",
 						}}
 					>
-						<div className="bg-white rounded-hds-xl p-5" style={{ boxShadow: '0 0 0 1px #e2e8f020, 0 8px 24px -4px #6366f120, 0 20px 40px -8px #64748b15' }}>
+						<div className="bg-white rounded-hds-xl p-5 shadow-hds-surface-higher">
 							<div className="flex items-center gap-3 mb-3">
 								<Zap className="w-5 h-5 text-action-200 animate-pulse" />
 								<h3 className="font-semibold text-neutral-700">

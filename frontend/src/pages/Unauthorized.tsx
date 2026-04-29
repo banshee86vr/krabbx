@@ -5,9 +5,9 @@ export function Unauthorized() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f0fdfa 30%, #f5f3ff 60%, #fff1f2 100%)' }}>
+    <div className="min-h-screen flex items-center justify-center p-4 krx-auth-page-bg">
       <div className="w-full max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-hds-xl text-white mb-5" style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1, #a855f7)', boxShadow: '0 8px 24px -4px #6366f140' }}>
+        <div className="krx-mark-gradient inline-flex items-center justify-center w-16 h-16 rounded-hds-xl text-white mb-5">
           <Bot className="w-9 h-9" />
         </div>
         
@@ -29,8 +29,7 @@ export function Unauthorized() {
 
         <button
           onClick={() => navigate('/login')}
-          className="px-6 py-2.5 text-white rounded-hds-md font-medium transition-all hover:shadow-lg"
-          style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1)', boxShadow: '0 2px 8px -2px #4338ca40' }}
+          className="krx-cta-button px-6 py-2.5 text-white rounded-hds-md font-medium transition-all hover:shadow-lg"
         >
           Back to Login
         </button>

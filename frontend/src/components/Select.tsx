@@ -44,8 +44,7 @@ export function Select({ options, value, onChange, placeholder, className }: Sel
     <div ref={containerRef} className={cn('relative', className)}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-10 w-full items-center justify-between rounded-hds-sm bg-white px-3 py-2 text-sm text-neutral-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-        style={{ border: '1px solid #e2e8f0' }}
+        className="flex h-10 w-full items-center justify-between rounded-hds-sm border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 transition-colors hover:border-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span>{displayLabel}</span>
         <ChevronDown
@@ -58,8 +57,7 @@ export function Select({ options, value, onChange, placeholder, className }: Sel
 
       {isOpen && (
         <div
-          className="absolute top-full left-0 right-0 mt-1 z-50 rounded-hds-md bg-white"
-          style={{ boxShadow: '0 0 0 1px #e2e8f040, 0 4px 6px 0 #47556920, 0 12px 24px 0 #47556930' }}
+          className="absolute top-full left-0 right-0 mt-1 z-50 rounded-hds-md bg-white shadow-hds-surface-overlay"
         >
           <ul className="py-1">
             {options.map((option) => (
@@ -69,7 +67,7 @@ export function Select({ options, value, onChange, placeholder, className }: Sel
                   className={cn(
                     'w-full text-left px-3 py-2 text-sm transition-colors',
                     value === option.value
-                      ? 'bg-action-200 text-white'
+                      ? 'bg-action-50 text-action-300 font-medium'
                       : 'text-neutral-700 hover:bg-neutral-100'
                   )}
                 >

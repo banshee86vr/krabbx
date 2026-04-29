@@ -15,14 +15,14 @@ export function Login() {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #eef2ff 0%, #f0fdfa 30%, #f5f3ff 60%, #fff1f2 100%)' }}>
+    <div className="min-h-screen flex items-center justify-center p-4 krx-auth-page-bg">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-hds-xl text-white mb-5" style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1, #a855f7)', boxShadow: '0 8px 24px -4px #6366f140' }}>
+          <div className="krx-mark-gradient inline-flex items-center justify-center w-16 h-16 rounded-hds-xl text-white mb-5">
             <Bot className="w-9 h-9" />
           </div>
           <h1 className="text-2xl font-bold text-neutral-700 mb-2">RenovateBot Dashboard</h1>
-          <p className="text-neutral-500">Monitor and manage Renovate Bot adoption</p>
+          <p className="text-neutral-500">Monitor Renovate Bot adoption and outdated dependencies</p>
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-hds-xl p-8" style={{ boxShadow: '0 0 0 1px #e2e8f020, 0 4px 6px -1px #64748b10, 0 20px 40px -8px #6366f115' }}>
@@ -35,8 +35,7 @@ export function Login() {
           <button
             onClick={handleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-6 py-3 text-white rounded-hds-md font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg"
-            style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1)', boxShadow: '0 2px 8px -2px #4338ca40' }}
+            className="krx-cta-button w-full flex items-center justify-center gap-3 px-6 py-3 text-white rounded-hds-md font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg"
           >
             {isLoading ? (
               <>

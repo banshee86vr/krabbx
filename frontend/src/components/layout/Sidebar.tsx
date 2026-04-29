@@ -31,7 +31,7 @@ export function Sidebar() {
       <div className="flex flex-col h-full">
         {/* Logo */}
         <div className={cn('flex items-center gap-3 px-4 py-4 border-b border-neutral-200', isCollapsed && 'justify-center')}>
-          <div className="flex items-center justify-center w-9 h-9 rounded-hds-md text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1)' }}>
+          <div className="krx-logo-tile flex items-center justify-center w-9 h-9 rounded-hds-md text-white flex-shrink-0">
             <Bot className="w-5 h-5" />
           </div>
           {!isCollapsed && (

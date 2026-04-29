@@ -34,7 +34,7 @@ export function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 h-[60px]" style={{ background: 'linear-gradient(135deg, #312e81 0%, #4338ca 40%, #6366f1 100%)' }}>
+    <header className="krx-header fixed top-0 left-0 right-0 z-40 h-[60px]">
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
         {/* Mobile menu button */}
         <button
@@ -93,7 +93,7 @@ export function Header() {
 
             {/* Notification dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-hds-lg animate-fadeIn" style={{ boxShadow: '0 0 0 1px #e2e8f040, 0 4px 12px 0 #47556920, 0 16px 32px -8px #47556930' }}>
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-hds-lg shadow-hds-surface-higher animate-fadeIn">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
                   <h3 className="font-medium text-neutral-700">Notifications</h3>
                   {unreadCount > 0 && (
@@ -170,7 +170,7 @@ export function Header() {
 
             {/* User dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-hds-lg animate-fadeIn" style={{ boxShadow: '0 0 0 1px #e2e8f040, 0 4px 12px 0 #47556920, 0 16px 32px -8px #47556930' }}>
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-hds-lg shadow-hds-surface-higher animate-fadeIn">
                 <div className="px-4 py-3 border-b border-neutral-200">
                   <p className="text-sm font-medium text-neutral-700">{user?.name}</p>
                   <p className="text-xs text-neutral-500">{user?.email}</p>
@@ -196,7 +196,7 @@ export function Header() {
 
       {/* Mobile navigation */}
       {showMobileMenu && (
-        <div className="lg:hidden border-t border-indigo-500/30 animate-slideIn" style={{ background: 'linear-gradient(135deg, #312e81 0%, #4338ca 40%, #6366f1 100%)' }}>
+        <div className="lg:hidden border-t border-indigo-500/30 animate-slideIn krx-header">
           <div className="flex items-center gap-3 px-4 py-3 border-b border-indigo-500/30">
             <div className="flex items-center justify-center w-8 h-8 rounded-hds-sm bg-white/15 text-white">
               <Bot className="w-5 h-5" />
