@@ -182,26 +182,6 @@ backend:
     existingSecret: ""
     existingSecretKey: session-secret
   
-  # Microsoft Teams notifications (optional)
-  teams:
-    webhookUrl: ""
-    existingSecret: ""
-    existingSecretKey: teams-webhook-url
-  
-  # Email/SMTP configuration (optional)
-  email:
-    enabled: false
-    host: ""
-    port: 587
-    secure: false
-    user: ""
-    password: ""
-    fromEmail: ""
-    existingSecret: ""
-    existingSecretKeys:
-      user: smtp-user
-      password: smtp-password
-  
   # Specific repositories to scan (comma-separated)
   scanRepos: ""
 

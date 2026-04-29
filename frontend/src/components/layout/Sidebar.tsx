@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   GitBranch,
   Package,
-  Bell,
   Settings,
   Bot,
   ChevronLeft,
@@ -16,7 +15,6 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Repositories', href: '/repositories', icon: GitBranch },
   { name: 'Dependencies', href: '/dependencies', icon: Package },
-  { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 

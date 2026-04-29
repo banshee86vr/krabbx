@@ -36,17 +36,6 @@ const envSchema = z.object({
   // Storage mode: 'database' or 'memory' (default: memory for easy startup)
   STORAGE_MODE: z.enum(['database', 'memory']).default('memory'),
 
-  // Teams (optional)
-  TEAMS_WEBHOOK_URL: z.string().optional(),
-
-  // Email (optional)
-  SMTP_HOST: z.string().optional(),
-  SMTP_PORT: z.string().optional(),
-  SMTP_SECURE: z.string().optional(),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASS: z.string().optional(),
-  NOTIFICATION_FROM_EMAIL: z.string().optional(),
-
   // Scheduler
   SCAN_INTERVAL_MINUTES: z.string().default('60'),
 
@@ -86,17 +75,6 @@ export const config = {
     sessionSecret: env.SESSION_SECRET,
   },
   frontendUrl: env.FRONTEND_URL,
-  teams: {
-    webhookUrl: env.TEAMS_WEBHOOK_URL,
-  },
-  email: {
-    host: env.SMTP_HOST,
-    port: env.SMTP_PORT ? parseInt(env.SMTP_PORT, 10) : undefined,
-    secure: env.SMTP_SECURE === 'true',
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-    from: env.NOTIFICATION_FROM_EMAIL,
-  },
   scheduler: {
     scanIntervalMinutes: parseInt(env.SCAN_INTERVAL_MINUTES, 10),
   },

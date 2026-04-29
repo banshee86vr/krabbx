@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { Bell, RefreshCw, Menu, X, LogOut, User } from 'lucide-react';
-import { useNotifications } from '../../context/NotificationContext';
+import { RefreshCw, Menu, X, LogOut, User } from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
 import { useScan } from '../../context/ScanContext';
 import { useAuth } from '../../context/AuthContext';
-import { cn, formatRelativeTime } from '../../lib/utils';
+import { cn } from '../../lib/utils';
 import { useOrganizationScan } from '../../hooks/useOrganizationScan';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Bot, LayoutDashboard, GitBranch, Package, Settings } from 'lucide-react';
@@ -13,15 +12,12 @@ const mobileNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Repositories', href: '/repositories', icon: GitBranch },
   { name: 'Dependencies', href: '/dependencies', icon: Package },
-  { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
 export function Header() {
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { isConnected } = useSocket();
   const { scan } = useScan();
   const { user, logout } = useAuth();
@@ -75,79 +71,6 @@ export function Header() {
               {scanMutation.isPending || scan.isScanning ? 'Scanning...' : 'Scan'}
             </span>
           </button>
-
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative inline-flex items-center gap-2 px-3 py-1.5 rounded-hds-sm font-medium text-sm transition-colors text-indigo-200 hover:text-white hover:bg-white/10"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1.5 text-xs font-bold text-white bg-critical-200 rounded-full flex items-center justify-center whitespace-nowrap pointer-events-none">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notification dropdown */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-hds-lg shadow-hds-surface-higher animate-fadeIn">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
-                  <h3 className="font-medium text-neutral-700">Notifications</h3>
-                  {unreadCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={markAllAsRead}
-                      className="text-sm text-action-300 hover:text-action-400"
-                    >
-                      Mark all read
-                    </button>
-                  )}
-                </div>
-                <div className="max-h-96 overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <p className="px-4 py-8 text-center text-sm text-neutral-500">
-                      No notifications yet
-                    </p>
-                  ) : (
-                    notifications.slice(0, 10).map((notification) => (
-                      <div
-                        key={notification.id}
-                        onClick={() => markAsRead(notification.id)}
-                        className={cn(
-                          'px-4 py-3 border-b border-neutral-100 cursor-pointer hover:bg-neutral-100 transition-colors',
-                          !notification.read && 'bg-action-50'
-                        )}
-                      >
-                        <p className="text-sm font-medium text-neutral-700">
-                          {notification.subject}
-                        </p>
-                        <p className="text-sm text-neutral-500 mt-0.5">
-                          {notification.content}
-                        </p>
-                        <p className="text-xs text-neutral-400 mt-1">
-                          {formatRelativeTime(notification.timestamp)}
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
-                {notifications.length > 10 && (
-                  <div className="px-4 py-3 border-t border-neutral-200">
-                    <NavLink
-                      to="/notifications"
-                      onClick={() => setShowNotifications(false)}
-                      className="text-sm text-action-300 hover:text-action-400"
-                    >
-                      View all notifications
-                    </NavLink>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
 
           {/* User menu */}
           <div className="relative">

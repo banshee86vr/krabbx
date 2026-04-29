@@ -54,29 +54,6 @@ export interface ScanHistory {
   createdAt: Date;
 }
 
-export interface NotificationConfig {
-  id: string;
-  type: NotificationType;
-  name: string;
-  enabled: boolean;
-  config: Record<string, unknown>;
-  triggers: NotificationTrigger[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface NotificationHistory {
-  id: string;
-  type: NotificationType;
-  trigger: NotificationTrigger;
-  recipient: string;
-  subject: string;
-  content: string;
-  status: NotificationStatus;
-  errorMessage: string | null;
-  sentAt: Date;
-}
-
 export interface AppSettings {
   id: string;
   githubOrg: string;
@@ -153,9 +130,6 @@ export type DependencyType =
 
 export type ScanType = 'full' | 'incremental' | 'manual';
 export type ScanStatus = 'pending' | 'running' | 'completed' | 'failed';
-export type NotificationType = 'teams' | 'email' | 'inApp';
-export type NotificationTrigger = 'critical' | 'newAdoption' | 'stalePR' | 'scanComplete';
-export type NotificationStatus = 'sent' | 'failed' | 'pending';
 
 // Query types
 export interface RepositoryFilters {
@@ -200,18 +174,6 @@ export interface IStorage {
   // Scan History
   createScanHistory(data: Omit<ScanHistory, 'id' | 'createdAt'>): Promise<ScanHistory>;
   getScanHistory(repositoryId?: string, limit?: number): Promise<ScanHistory[]>;
-
-  // Notification Config
-  getNotificationConfigs(): Promise<NotificationConfig[]>;
-  getNotificationConfigById(id: string): Promise<NotificationConfig | null>;
-  createNotificationConfig(data: Omit<NotificationConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<NotificationConfig>;
-  updateNotificationConfig(id: string, data: Partial<NotificationConfig>): Promise<NotificationConfig>;
-  deleteNotificationConfig(id: string): Promise<void>;
-  getNotificationConfigsByTrigger(trigger: NotificationTrigger): Promise<NotificationConfig[]>;
-
-  // Notification History
-  createNotificationHistory(data: Omit<NotificationHistory, 'id' | 'sentAt'>): Promise<NotificationHistory>;
-  getNotificationHistory(pagination?: PaginationOptions, type?: NotificationType): Promise<{ data: NotificationHistory[]; total: number }>;
 
   // App Settings
   getAppSettings(): Promise<AppSettings | null>;

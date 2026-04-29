@@ -5,13 +5,11 @@ import { Dashboard } from './pages/Dashboard';
 import { Repositories } from './pages/Repositories';
 import { RepositoryDetail } from './pages/RepositoryDetail';
 import { Dependencies } from './pages/Dependencies';
-import { Notifications } from './pages/Notifications';
 import { Settings } from './pages/Settings';
 import { Login } from './pages/Login';
 import { Unauthorized } from './pages/Unauthorized';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
-import { NotificationProvider } from './context/NotificationContext';
 import { ScanProvider } from './context/ScanContext';
 import { SidebarProvider } from './context/SidebarContext';
 
@@ -29,22 +27,19 @@ function App() {
             element={
               <ProtectedRoute>
                 <SocketProvider>
-                  <NotificationProvider>
-                    <ScanProvider>
-                      <SidebarProvider>
-                        <Layout>
-                          <Routes>
-                            <Route path="/" element={<Dashboard />} />
-                            <Route path="/repositories" element={<Repositories />} />
-                            <Route path="/repositories/:id" element={<RepositoryDetail />} />
-                            <Route path="/dependencies" element={<Dependencies />} />
-                            <Route path="/notifications" element={<Notifications />} />
-                            <Route path="/settings" element={<Settings />} />
-                          </Routes>
-                        </Layout>
-                      </SidebarProvider>
-                    </ScanProvider>
-                  </NotificationProvider>
+                  <ScanProvider>
+                    <SidebarProvider>
+                      <Layout>
+                        <Routes>
+                          <Route path="/" element={<Dashboard />} />
+                          <Route path="/repositories" element={<Repositories />} />
+                          <Route path="/repositories/:id" element={<RepositoryDetail />} />
+                          <Route path="/dependencies" element={<Dependencies />} />
+                          <Route path="/settings" element={<Settings />} />
+                        </Routes>
+                      </Layout>
+                    </SidebarProvider>
+                  </ScanProvider>
                 </SocketProvider>
               </ProtectedRoute>
             }

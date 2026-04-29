@@ -65,13 +65,6 @@ backend:
   
   session:
     secret: "dev-session-secret-change-me"
-  
-  # Optional features disabled in dev
-  teams:
-    webhookUrl: ""
-  
-  email:
-    enabled: false
 
 # ============================================================================
 # PostgreSQL Configuration

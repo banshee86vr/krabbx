@@ -1,7 +1,6 @@
 import cron, { type ScheduledTask } from 'node-cron';
 import { Server } from 'socket.io';
 import { RenovateService } from './renovate.service.js';
-import { NotificationService } from './notification.service.js';
 import { getStorage } from '../storage/index.js';
 import { config } from '../config/env.js';
 import { logger } from '../lib/logger.js';
@@ -9,12 +8,10 @@ import { logger } from '../lib/logger.js';
 export class SchedulerService {
   private static instance: SchedulerService;
   private renovateService: RenovateService;
-  private notificationService: NotificationService;
   private scanJob: ScheduledTask | null = null;
 
   private constructor(io?: Server) {
     this.renovateService = new RenovateService(io);
-    this.notificationService = new NotificationService(io);
   }
 
   static getInstance(io?: Server): SchedulerService {
@@ -56,21 +53,10 @@ export class SchedulerService {
           scanIntervalMinutes: intervalMinutes,
           lastFullScanAt: new Date(),
         });
-
-        // Check for critical updates
-        const criticalUpdates = await this.checkForCriticalUpdates();
-        if (criticalUpdates.length > 0) {
-          await this.notificationService.sendCriticalUpdateAlert(criticalUpdates);
-        }
       } catch (error) {
         logger.error('Scheduled scan failed', error);
       }
     });
-  }
-
-  private async checkForCriticalUpdates(): Promise<{ repo: string; dependency: string; updateType: string }[]> {
-    const storage = getStorage();
-    return storage.getCriticalUpdates(20);
   }
 
   async runManualScan(): Promise<void> {

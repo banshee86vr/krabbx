@@ -3,14 +3,10 @@ import type {
   Repository,
   Dependency,
   ScanHistory,
-  NotificationConfig,
-  NotificationHistory,
   AppSettings,
   RepositoryFilters,
   DependencyFilters,
   PaginationOptions,
-  NotificationTrigger,
-  NotificationType,
   UpdateType,
   DependencyType,
 } from './types.js';
@@ -23,8 +19,6 @@ export class MemoryStorage implements IStorage {
   private repositories: Map<string, Repository> = new Map();
   private dependencies: Map<string, Dependency> = new Map();
   private scanHistory: ScanHistory[] = [];
-  private notificationConfigs: Map<string, NotificationConfig> = new Map();
-  private notificationHistory: NotificationHistory[] = [];
   private appSettings: AppSettings | null = null;
 
   // Helper to match filters
@@ -310,87 +304,6 @@ export class MemoryStorage implements IStorage {
       history = history.filter(h => h.repositoryId === repositoryId);
     }
     return history.slice(0, limit);
-  }
-
-  // Notification Config
-  async getNotificationConfigs(): Promise<NotificationConfig[]> {
-    return Array.from(this.notificationConfigs.values());
-  }
-
-  async getNotificationConfigById(id: string): Promise<NotificationConfig | null> {
-    return this.notificationConfigs.get(id) || null;
-  }
-
-  async createNotificationConfig(
-    data: Omit<NotificationConfig, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<NotificationConfig> {
-    const config: NotificationConfig = {
-      id: generateId(),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.notificationConfigs.set(config.id, config);
-    return config;
-  }
-
-  async updateNotificationConfig(id: string, data: Partial<NotificationConfig>): Promise<NotificationConfig> {
-    const existing = this.notificationConfigs.get(id);
-    if (!existing) throw new Error('Notification config not found');
-
-    const updated: NotificationConfig = {
-      ...existing,
-      ...data,
-      updatedAt: new Date(),
-    };
-    this.notificationConfigs.set(id, updated);
-    return updated;
-  }
-
-  async deleteNotificationConfig(id: string): Promise<void> {
-    this.notificationConfigs.delete(id);
-  }
-
-  async getNotificationConfigsByTrigger(trigger: NotificationTrigger): Promise<NotificationConfig[]> {
-    return Array.from(this.notificationConfigs.values()).filter(
-      c => c.enabled && c.triggers.includes(trigger)
-    );
-  }
-
-  // Notification History
-  async createNotificationHistory(
-    data: Omit<NotificationHistory, 'id' | 'sentAt'>
-  ): Promise<NotificationHistory> {
-    const history: NotificationHistory = {
-      id: generateId(),
-      ...data,
-      sentAt: new Date(),
-    };
-    this.notificationHistory.unshift(history);
-    // Keep only last 500 entries
-    if (this.notificationHistory.length > 500) {
-      this.notificationHistory = this.notificationHistory.slice(0, 500);
-    }
-    return history;
-  }
-
-  async getNotificationHistory(
-    pagination?: PaginationOptions,
-    type?: NotificationType
-  ): Promise<{ data: NotificationHistory[]; total: number }> {
-    let history = this.notificationHistory;
-    if (type) {
-      history = history.filter(h => h.type === type);
-    }
-    const total = history.length;
-
-    if (pagination?.skip !== undefined || pagination?.take !== undefined) {
-      const skip = pagination.skip || 0;
-      const take = pagination.take || history.length;
-      history = history.slice(skip, skip + take);
-    }
-
-    return { data: history, total };
   }
 
   // App Settings

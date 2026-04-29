@@ -97,12 +97,6 @@ CONFIGURATION:
 GitHub Organization: {{ .Values.backend.github.org }}
 Storage Mode: {{ .Values.backend.env.storageMode }}
 Scan Interval: {{ .Values.backend.env.scanIntervalMinutes }} minutes
-{{- if .Values.backend.email.enabled }}
-Email Notifications: Enabled
-{{- end }}
-{{- if .Values.backend.teams.webhookUrl }}
-Teams Notifications: Enabled
-{{- end }}
 
 IMPORTANT NOTES:
 ----------------

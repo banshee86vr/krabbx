@@ -5,14 +5,10 @@ import type {
   Repository,
   Dependency,
   ScanHistory,
-  NotificationConfig,
-  NotificationHistory,
   AppSettings,
   RepositoryFilters,
   DependencyFilters,
   PaginationOptions,
-  NotificationTrigger,
-  NotificationType,
   UpdateType,
   DependencyType,
 } from './types.js';
@@ -263,89 +259,6 @@ export class DatabaseStorage implements IStorage {
       },
     });
     return scans as unknown as ScanHistory[];
-  }
-
-  // Notification Config
-  async getNotificationConfigs(): Promise<NotificationConfig[]> {
-    const configs = await this.prisma.notificationConfig.findMany({
-      orderBy: { createdAt: 'asc' },
-    });
-    return configs as unknown as NotificationConfig[];
-  }
-
-  async getNotificationConfigById(id: string): Promise<NotificationConfig | null> {
-    const config = await this.prisma.notificationConfig.findUnique({ where: { id } });
-    return config as unknown as NotificationConfig | null;
-  }
-
-  async createNotificationConfig(
-    data: Omit<NotificationConfig, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<NotificationConfig> {
-    const config = await this.prisma.notificationConfig.create({
-      data: {
-        type: data.type,
-        name: data.name,
-        enabled: data.enabled,
-        config: data.config as any,
-        triggers: data.triggers,
-      },
-    });
-    return config as unknown as NotificationConfig;
-  }
-
-  async updateNotificationConfig(id: string, data: Partial<NotificationConfig>): Promise<NotificationConfig> {
-    const config = await this.prisma.notificationConfig.update({
-      where: { id },
-      data: {
-        type: data.type,
-        name: data.name,
-        enabled: data.enabled,
-        config: data.config as any,
-        triggers: data.triggers,
-      },
-    });
-    return config as unknown as NotificationConfig;
-  }
-
-  async deleteNotificationConfig(id: string): Promise<void> {
-    await this.prisma.notificationConfig.delete({ where: { id } });
-  }
-
-  async getNotificationConfigsByTrigger(trigger: NotificationTrigger): Promise<NotificationConfig[]> {
-    const configs = await this.prisma.notificationConfig.findMany({
-      where: {
-        enabled: true,
-        triggers: { has: trigger },
-      },
-    });
-    return configs as unknown as NotificationConfig[];
-  }
-
-  // Notification History
-  async createNotificationHistory(
-    data: Omit<NotificationHistory, 'id' | 'sentAt'>
-  ): Promise<NotificationHistory> {
-    const history = await this.prisma.notificationHistory.create({ data });
-    return history as unknown as NotificationHistory;
-  }
-
-  async getNotificationHistory(
-    pagination?: PaginationOptions,
-    type?: NotificationType
-  ): Promise<{ data: NotificationHistory[]; total: number }> {
-    const where = type ? { type } : {};
-
-    const [data, total] = await Promise.all([
-      this.prisma.notificationHistory.findMany({
-        where,
-        orderBy: { sentAt: 'desc' },
-        skip: pagination?.skip,
-        take: pagination?.take,
-      }),
-      this.prisma.notificationHistory.count({ where }),
-    ]);
-
-    return { data: data as unknown as NotificationHistory[], total };
   }
 
   // App Settings

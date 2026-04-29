@@ -100,22 +100,6 @@ backend:
     # Recommended: Use existing secret
     # existingSecret: renovate-session-secret
   
-  # Optional: Teams notifications
-  teams:
-    webhookUrl: ""  # Set if using Teams
-    # existingSecret: renovate-teams-secret
-  
-  # Optional: Email notifications
-  email:
-    enabled: false
-    host: "smtp.gmail.com"
-    port: 587
-    secure: false
-    user: ""
-    password: ""
-    fromEmail: "renovate@example.com"
-    # existingSecret: renovate-email-secret
-  
   # Anti-affinity to spread pods across nodes
   affinity:
     podAntiAffinity:

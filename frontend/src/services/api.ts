@@ -3,8 +3,6 @@ import type {
   Dependency,
   DashboardSummary,
   DependencyStats,
-  NotificationConfig,
-  NotificationHistory,
   AppSettings,
   PaginatedResponse,
 } from '../types';
@@ -146,31 +144,6 @@ export const dependencyApi = {
   },
   getStats: () => fetchApi<DependencyStats>('/dependencies/stats'),
   getPackageManagers: () => fetchApi<string[]>('/dependencies/package-managers'),
-};
-
-// Notifications
-export const notificationApi = {
-  getConfigs: () => fetchApi<NotificationConfig[]>('/notifications/config'),
-  createConfig: (data: Omit<NotificationConfig, 'id' | 'createdAt' | 'updatedAt'>) =>
-    fetchApi<NotificationConfig>('/notifications/config', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-  updateConfig: (id: string, data: Partial<NotificationConfig>) =>
-    fetchApi<NotificationConfig>(`/notifications/config/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    }),
-  deleteConfig: (id: string) =>
-    fetchApi<void>(`/notifications/config/${id}`, { method: 'DELETE' }),
-  test: (type: 'teams' | 'email' | 'inApp') =>
-    fetchApi<{ message: string }>('/notifications/test', {
-      method: 'POST',
-      body: JSON.stringify({ type }),
-    }),
-  getHistory: (page = 1, limit = 20) =>
-    fetchApi<PaginatedResponse<NotificationHistory>>(`/notifications/history?page=${page}&limit=${limit}`),
-  getTriggers: () => fetchApi<string[]>('/notifications/triggers'),
 };
 
 // Settings

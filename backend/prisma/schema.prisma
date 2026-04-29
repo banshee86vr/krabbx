@@ -80,34 +80,6 @@ model ScanHistory {
   @@index([createdAt])
 }
 
-model NotificationConfig {
-  id        String              @id @default(cuid())
-  type      NotificationType
-  name      String
-  enabled   Boolean             @default(true)
-  config    Json                // Flexible config storage
-  triggers  NotificationTrigger[]
-  createdAt DateTime            @default(now())
-  updatedAt DateTime            @updatedAt
-
-  @@unique([type, name])
-}
-
-model NotificationHistory {
-  id          String           @id @default(cuid())
-  type        NotificationType
-  trigger     NotificationTrigger
-  recipient   String
-  subject     String
-  content     String
-  status      NotificationStatus
-  errorMessage String?
-  sentAt      DateTime         @default(now())
-
-  @@index([type])
-  @@index([sentAt])
-}
-
 model AppSettings {
   id        String   @id @default("app-settings")
   githubOrg String
@@ -211,23 +183,4 @@ enum ScanStatus {
   running
   completed
   failed
-}
-
-enum NotificationType {
-  teams
-  email
-  inApp
-}
-
-enum NotificationTrigger {
-  critical
-  newAdoption
-  stalePR
-  scanComplete
-}
-
-enum NotificationStatus {
-  sent
-  failed
-  pending
 }

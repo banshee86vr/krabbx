@@ -17,7 +17,6 @@ import { apiLimiter, authLimiter, scanLimiter } from './middleware/rateLimiter.j
 import { authRoutes } from './routes/auth.routes.js';
 import { dashboardRoutes } from './routes/dashboard.routes.js';
 import { dependencyRoutes } from './routes/dependency.routes.js';
-import { notificationRoutes } from './routes/notification.routes.js';
 import { repositoryRoutes } from './routes/repository.routes.js';
 import { settingsRoutes } from './routes/settings.routes.js';
 import { SchedulerService } from './services/scheduler.service.js';
@@ -63,7 +62,7 @@ if (shouldUseRedis) {
   logger.info('Redis disabled in development mode. Set USE_REDIS=true to enable.');
 }
 
-// Socket.io setup for real-time notifications
+// Socket.io setup for real-time updates (e.g. scan progress)
 const io = new Server(httpServer, {
   cors: {
     origin: config.frontendUrl,
@@ -195,7 +194,6 @@ app.use('/api/repositories/scan', requireAuth, scanLimiter);
 app.use('/api/repositories', requireAuth, repositoryRoutes);
 app.use('/api/dependencies', requireAuth, dependencyRoutes);
 app.use('/api/dashboard', requireAuth, dashboardRoutes);
-app.use('/api/notifications', requireAuth, notificationRoutes);
 app.use('/api/settings', requireAuth, settingsRoutes);
 
 // Error handling

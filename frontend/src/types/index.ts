@@ -133,43 +133,6 @@ export type DependencyType =
   | 'action'
   | 'workflow';
 
-export interface NotificationConfig {
-  id: string;
-  type: 'teams' | 'email' | 'inApp';
-  name: string;
-  enabled: boolean;
-  config: {
-    webhookUrl?: string;
-    recipients?: string[];
-  };
-  triggers: NotificationTrigger[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type NotificationTrigger = 'critical' | 'newAdoption' | 'stalePR' | 'scanComplete';
-
-export interface NotificationHistory {
-  id: string;
-  type: 'teams' | 'email' | 'inApp';
-  trigger: NotificationTrigger;
-  recipient: string;
-  subject: string;
-  content: string;
-  status: 'sent' | 'failed' | 'pending';
-  errorMessage: string | null;
-  sentAt: string;
-}
-
-export interface InAppNotification {
-  id: string;
-  subject: string;
-  content: string;
-  trigger: NotificationTrigger;
-  timestamp: string;
-  read: boolean;
-}
-
 export interface DashboardSummary {
   repositories: {
     total: number;

@@ -14,12 +14,6 @@ data:
   USE_REDIS: {{ .Values.backend.env.useRedis | quote }}
   GITHUB_ORG: {{ required "backend.github.org is required" .Values.backend.github.org | quote }}
   FRONTEND_URL: {{ include "renovate-dashboard.frontendUrl" . | quote }}
-  {{- if .Values.backend.email.enabled }}
-  SMTP_HOST: {{ .Values.backend.email.host | quote }}
-  SMTP_PORT: {{ .Values.backend.email.port | quote }}
-  SMTP_SECURE: {{ .Values.backend.email.secure | quote }}
-  NOTIFICATION_FROM_EMAIL: {{ .Values.backend.email.fromEmail | quote }}
-  {{- end }}
   {{- if .Values.backend.scanRepos }}
   SCAN_REPOS: {{ .Values.backend.scanRepos | quote }}
   {{- end }}
