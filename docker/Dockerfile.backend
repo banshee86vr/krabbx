@@ -31,8 +31,8 @@ FROM node:25-alpine
 
 WORKDIR /workspace
 
-# Install runtime dependencies
-RUN apk add --no-cache openssl wget && \
+# Apply latest security patches, then runtime dependencies
+RUN apk upgrade --no-cache && apk add --no-cache openssl wget && \
     npm install -g npm@latest pnpm@10
 
 # Copy workspace configuration

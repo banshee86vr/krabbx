@@ -24,6 +24,10 @@ RUN cd frontend && pnpm run build
 # Production stage - using minimal nginx
 FROM nginx:1.29.8-alpine
 
+# Apply latest security patches from Alpine repos (Trivy: e.g. libpng/zlib)
+USER root
+RUN apk upgrade --no-cache
+
 # Create non-root user for nginx (or use existing nginx user)
 # nginx:alpine already has nginx user/group, so we'll just use it
 # The default nginx user has UID 101 and GID 101
