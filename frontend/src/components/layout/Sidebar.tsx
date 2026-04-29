@@ -23,7 +23,7 @@ export function Sidebar() {
 
   return (
     <aside className={cn(
-      'fixed top-[60px] bottom-0 left-0 z-30 hidden bg-white border-r border-neutral-200 lg:flex lg:flex-col transition-all duration-300',
+      'fixed top-[60px] bottom-0 left-0 z-30 hidden bg-neutral-100 border-r border-neutral-200 lg:flex lg:flex-col transition-all duration-300',
       isCollapsed ? 'w-20' : 'w-64'
     )}>
       <div className="flex flex-col h-full">
@@ -52,8 +52,8 @@ export function Sidebar() {
                   'flex items-center gap-3 px-2 py-1.5 rounded-hds-sm text-sm font-medium transition-colors h-9',
                   isCollapsed && 'justify-center',
                   isActive
-                    ? 'bg-action-50 text-action-300 font-semibold'
-                    : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700'
+                    ? 'bg-action-50 text-action-200 font-semibold'
+                    : 'text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700'
                 )
               }
             >
@@ -69,7 +69,7 @@ export function Sidebar() {
             type="button"
             onClick={toggleSidebar}
             className={cn(
-              'flex items-center gap-2 px-2 py-1.5 rounded-hds-sm text-sm font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-700 transition-colors',
+              'flex items-center gap-2 px-2 py-1.5 rounded-hds-sm text-sm font-medium text-neutral-500 hover:bg-neutral-200 hover:text-neutral-700 transition-colors',
               isCollapsed && 'justify-center'
             )}
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}

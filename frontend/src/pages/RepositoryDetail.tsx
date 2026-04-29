@@ -81,7 +81,7 @@ export function RepositoryDetail() {
 				<p className="text-neutral-500">Repository not found</p>
 				<Link
 					to="/repositories"
-					className="text-action-300 hover:text-action-400 mt-2 inline-block"
+					className="text-action-200 hover:text-action-300 mt-2 inline-block"
 				>
 					Back to repositories
 				</Link>
@@ -138,10 +138,10 @@ export function RepositoryDetail() {
 								{repo.gamification && (
 									<a
 										href="#repo-health"
-										className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100 hover:bg-indigo-100"
+										className="inline-flex items-center gap-1.5 rounded-full bg-action-50 px-2.5 py-1 text-xs font-semibold text-action-200 ring-1 ring-action-100 hover:bg-neutral-200"
 									>
 										Health score {repo.gamification.finalScore}
-										<span className="font-normal text-indigo-500">· details</span>
+										<span className="font-normal text-action-300">· details</span>
 									</a>
 								)}
 								{repo.renovateConfigPath && (
@@ -175,7 +175,7 @@ export function RepositoryDetail() {
 								)}
 							>
 								{(scanMutation.isPending || scan.isScanning) && (
-									<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_2s_infinite]" />
+									<div className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-400/20 to-transparent animate-[shimmer_2s_infinite]" />
 								)}
 								<RefreshCw
 									className={cn(
@@ -222,7 +222,7 @@ export function RepositoryDetail() {
 							Scan History
 						</h2>
 					</div>
-					<div className="divide-y divide-neutral-100">
+					<div className="divide-y divide-neutral-200">
 						{repo.scanHistory.map((scan) => (
 							<div
 								key={scan.id}
@@ -234,7 +234,7 @@ export function RepositoryDetail() {
 											"w-8 h-8 rounded-full flex items-center justify-center",
 											scan.status === "completed"
 												? "bg-success-50"
-												: "bg-neutral-100",
+												: "bg-neutral-200",
 										)}
 									>
 										{scan.status === "completed" ? (
@@ -332,11 +332,11 @@ function DependenciesSection({ repositoryId }: { repositoryId: string }) {
 			{isLoading ? (
 				<div className="px-6 py-8">
 					<div className="animate-pulse space-y-4">
-						<div key="skeleton-1" className="h-12 bg-neutral-100 rounded-hds-sm" />
-						<div key="skeleton-2" className="h-12 bg-neutral-100 rounded-hds-sm" />
-						<div key="skeleton-3" className="h-12 bg-neutral-100 rounded-hds-sm" />
-						<div key="skeleton-4" className="h-12 bg-neutral-100 rounded-hds-sm" />
-						<div key="skeleton-5" className="h-12 bg-neutral-100 rounded-hds-sm" />
+						<div key="skeleton-1" className="h-12 bg-neutral-200 rounded-hds-sm" />
+						<div key="skeleton-2" className="h-12 bg-neutral-200 rounded-hds-sm" />
+						<div key="skeleton-3" className="h-12 bg-neutral-200 rounded-hds-sm" />
+						<div key="skeleton-4" className="h-12 bg-neutral-200 rounded-hds-sm" />
+						<div key="skeleton-5" className="h-12 bg-neutral-200 rounded-hds-sm" />
 					</div>
 				</div>
 			) : prsData?.data && prsData.data.length > 0 ? (
@@ -365,18 +365,18 @@ function DependenciesSection({ repositoryId }: { repositoryId: string }) {
 								<th className="px-2.5 py-2"></th>
 							</tr>
 						</thead>
-						<tbody className="bg-white divide-y divide-neutral-200">
+						<tbody className="bg-neutral-100 divide-y divide-neutral-200">
 							{prsData.data.map((pr: PRData) => (
 								<tr
 									key={`pr-${pr.number}`}
-									className="hover:bg-neutral-100 transition-colors"
+									className="hover:bg-neutral-200 transition-colors"
 								>
 									<td className="px-2.5 py-0.5 whitespace-nowrap text-xs">
 										<a
 											href={pr.html_url}
 											target="_blank"
 											rel="noopener noreferrer"
-											className="text-action-300 hover:text-action-400 font-medium"
+											className="text-action-200 hover:text-action-300 font-medium"
 										>
 											#{pr.number}
 										</a>

@@ -11,8 +11,8 @@ import type { RepositoryGamification } from '../../types';
 import { cn } from '../../lib/utils';
 
 const RADAR_COLORS = {
-  fill: 'rgba(99, 102, 241, 0.45)',
-  stroke: '#6366f1',
+  fill: 'rgba(34, 211, 238, 0.35)',
+  stroke: '#22d3ee',
 };
 
 type RepositoryHealthPanelProps = {
@@ -48,15 +48,15 @@ export function RepositoryHealthPanel({ gamification, rankHidden }: RepositoryHe
       id="repo-health"
       className="card relative overflow-hidden scroll-mt-20"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_50%_at_0%_0%,rgba(99,102,241,0.08),transparent)]" />
-      <div className="relative border-b border-neutral-200 bg-gradient-to-r from-indigo-50/40 via-white to-amber-50/20 px-6 py-4">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_90%_50%_at_0%_0%,rgba(34,211,238,0.07),transparent)]" />
+      <div className="relative border-b border-neutral-200 bg-gradient-to-r from-action-50/80 via-neutral-100 to-amber-950/30 px-6 py-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <div className="rounded-hds-lg bg-white p-2 shadow-sm ring-1 ring-neutral-100">
-              <LineChart className="h-5 w-5 text-indigo-500" />
+            <div className="rounded-hds-lg bg-neutral-200 p-2 shadow-sm ring-1 ring-neutral-300">
+              <LineChart className="h-5 w-5 text-action-200" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-neutral-800">Dependency health score</h2>
+              <h2 className="text-lg font-semibold text-neutral-700">Dependency health score</h2>
               <p className="text-sm text-neutral-500">
                 Version {g.scoreVersion} — same model as the dashboard leaderboard
               </p>
@@ -65,26 +65,26 @@ export function RepositoryHealthPanel({ gamification, rankHidden }: RepositoryHe
           <div className="flex flex-wrap items-center gap-3">
             <div
               className={cn(
-                'flex h-16 w-16 flex-col items-center justify-center rounded-2xl text-center shadow-inner ring-2 ring-white',
-                g.finalScore >= 80 && 'bg-gradient-to-br from-emerald-100 to-emerald-50',
-                g.finalScore >= 50 && g.finalScore < 80 && 'bg-gradient-to-br from-amber-100 to-amber-50',
-                g.finalScore < 50 && 'bg-gradient-to-br from-rose-100 to-rose-50',
+                'flex h-16 w-16 flex-col items-center justify-center rounded-2xl text-center shadow-inner ring-2 ring-neutral-200',
+                g.finalScore >= 80 && 'bg-gradient-to-br from-emerald-950 to-emerald-900/60',
+                g.finalScore >= 50 && g.finalScore < 80 && 'bg-gradient-to-br from-amber-950 to-amber-900/50',
+                g.finalScore < 50 && 'bg-gradient-to-br from-rose-950 to-rose-900/50',
               )}
             >
-              <span className="text-2xl font-bold tabular-nums text-neutral-800">{g.finalScore}</span>
+              <span className="text-2xl font-bold tabular-nums text-neutral-700">{g.finalScore}</span>
               <span className="text-[10px] font-medium uppercase tracking-wide text-neutral-500">/ 100</span>
             </div>
             {g.organizationRank != null && g.totalRankedRepos > 0 && !rankHidden && (
-              <div className="rounded-hds-lg border border-indigo-100 bg-indigo-50/80 px-3 py-2 text-sm">
-                <p className="text-xs font-medium text-indigo-600">Org rank</p>
-                <p className="font-bold text-indigo-900">
+              <div className="rounded-hds-lg border border-action-100 bg-action-50 px-3 py-2 text-sm">
+                <p className="text-xs font-medium text-action-200">Org rank</p>
+                <p className="font-bold text-neutral-700">
                   #{g.organizationRank}
-                  <span className="text-indigo-400 font-normal"> / {g.totalRankedRepos}</span>
+                  <span className="text-action-300 font-normal"> / {g.totalRankedRepos}</span>
                 </p>
               </div>
             )}
             {g.inputs.majorOutdatedCount === 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-800 ring-1 ring-sky-100">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-action-50 px-2.5 py-1 text-xs font-semibold text-action-200 ring-1 ring-action-100">
                 <Award className="h-3.5 w-3.5" />
                 Zero major drift
               </span>
@@ -96,7 +96,7 @@ export function RepositoryHealthPanel({ gamification, rankHidden }: RepositoryHe
       <div className="relative grid gap-8 p-6 lg:grid-cols-2 lg:gap-10">
         <div>
           <div className="mb-2 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-indigo-400" />
+            <Sparkles className="h-4 w-4 text-action-200" />
             <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-600">
               Score shape (radar)
             </h3>
@@ -113,12 +113,12 @@ export function RepositoryHealthPanel({ gamification, rankHidden }: RepositoryHe
                 outerRadius="78%"
                 data={radarRows}
               >
-                <PolarGrid stroke="#e2e8f0" />
+                <PolarGrid stroke="#27272a" />
                 <PolarAngleAxis
                   dataKey="axis"
-                  tick={{ fill: '#64748b', fontSize: 11 }}
+                  tick={{ fill: '#a1a1aa', fontSize: 11 }}
                 />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fill: '#71717a', fontSize: 10 }} />
                 <Radar
                   name="Health"
                   dataKey="value"
@@ -194,7 +194,7 @@ export function RepositoryHealthPanel({ gamification, rankHidden }: RepositoryHe
               <span className="text-neutral-500">
                 {' '}
                 — clamp to 0–100 and round →{' '}
-                <strong className="text-neutral-800">{g.finalScore}</strong>.
+                <strong className="text-neutral-700">{g.finalScore}</strong>.
               </span>
             </li>
           </ol>

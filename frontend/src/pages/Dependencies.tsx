@@ -135,7 +135,7 @@ export function Dependencies() {
 		<div className="space-y-6 relative">
 			{/* Empty State Overlay - No data in database */}
 			{showEmptyState && (
-				<div className="fixed inset-0 bg-white/80 backdrop-blur-md z-40 flex items-center justify-center">
+				<div className="fixed inset-0 bg-black/50 backdrop-blur-md z-40 flex items-center justify-center">
 					<div className="text-center max-w-md px-6">
 						<div className="mb-6">
 							<Package className="w-20 h-20 text-neutral-300 mx-auto mb-4" />
@@ -298,7 +298,7 @@ export function Dependencies() {
 								<th className="px-2.5 py-2"></th>
 							</tr>
 						</thead>
-						<tbody className="bg-white divide-y divide-neutral-200">
+						<tbody className="bg-neutral-100 divide-y divide-neutral-200">
 							{isLoading ? (
 								[...Array(10)].map((_, i) => (
 									<tr key={i}>
@@ -320,7 +320,7 @@ export function Dependencies() {
 								data?.data.map((dep) => (
 									<tr
 										key={dep.id}
-										className="hover:bg-neutral-100 transition-colors"
+										className="hover:bg-neutral-200 transition-colors"
 									>
 										<td className="px-2.5 py-0.5 text-xs">
 											<div className="flex items-center gap-1.5">
@@ -334,7 +334,7 @@ export function Dependencies() {
 											{dep.repository && (
 												<Link
 													to={`/repositories/${dep.repository.id}`}
-													className="text-action-300 hover:text-action-400"
+													className="text-action-200 hover:text-action-300"
 												>
 													{dep.repository.name}
 												</Link>

@@ -29,7 +29,7 @@ export function Layout({ children }: LayoutProps) {
 
 			{scan.isScanning && (
 				<>
-					<div className="fixed inset-0 bg-neutral-700/20 backdrop-blur-sm z-40" />
+					<div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" />
 
 					<div
 						className="fixed z-50"
@@ -40,7 +40,7 @@ export function Layout({ children }: LayoutProps) {
 							width: "min(28rem, calc(100vw - 2rem))",
 						}}
 					>
-						<div className="bg-white rounded-hds-xl p-5 shadow-hds-surface-higher">
+						<div className="bg-neutral-100 border border-neutral-200 rounded-hds-xl p-5 shadow-hds-surface-higher">
 							<div className="flex items-center gap-3 mb-3">
 								<Zap className="w-5 h-5 text-action-200 animate-pulse" />
 								<h3 className="font-semibold text-neutral-700">
@@ -53,7 +53,7 @@ export function Layout({ children }: LayoutProps) {
 							<p className="text-sm text-neutral-500 mb-3">
 								Retrieve repositories data
 							</p>
-							<div className="w-full h-2 bg-neutral-100 rounded-full overflow-hidden">
+							<div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
 								<div
 									className="h-full bg-action-200 transition-all duration-300 ease-out rounded-full"
 									style={{ width: `${scan.progress}%` }}

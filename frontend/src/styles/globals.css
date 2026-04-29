@@ -12,24 +12,25 @@
 
 @layer base {
   :root {
-    --background: 248 250 252;
-    --background-faint: 241 245 249;
-    --foreground: 71 85 105;
-    --foreground-strong: 30 41 59;
-    --card: 255 255 255;
-    --card-foreground: 71 85 105;
-    --primary: 99 102 241;
-    --primary-foreground: 255 255 255;
-    --secondary: 241 245 249;
-    --secondary-foreground: 71 85 105;
-    --muted: 241 245 249;
-    --muted-foreground: 100 116 139;
-    --accent: 238 242 255;
-    --accent-foreground: 30 41 59;
+    /* Dark-only; accent rgb for #22d3ee */
+    --background: 13 17 23;
+    --background-faint: 22 27 34;
+    --foreground: 201 209 217;
+    --foreground-strong: 240 246 252;
+    --card: 22 27 34;
+    --card-foreground: 201 209 217;
+    --primary: 34 211 238;
+    --primary-foreground: 9 9 11;
+    --secondary: 33 38 45;
+    --secondary-foreground: 240 246 252;
+    --muted: 33 38 45;
+    --muted-foreground: 139 148 158;
+    --accent: 11 27 35;
+    --accent-foreground: 34 211 238;
     --destructive: 244 63 94;
     --destructive-foreground: 255 255 255;
-    --border: 226 232 240;
-    --ring: 79 70 229;
+    --border: 48 54 61;
+    --ring: 34 211 238;
   }
 
   *,
@@ -47,37 +48,37 @@
   }
 
   a {
-    @apply text-action-300 hover:text-action-400;
+    @apply text-action-200 hover:text-action-300;
   }
 }
 
 @layer components {
-  /* KrabbX header & shell (project/README.md) */
   .krx-header {
-    background: linear-gradient(135deg, #312e81 0%, #4338ca 40%, #6366f1 100%);
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 45%, #0b1b23 100%);
+    box-shadow: 0 1px 0 0 #30363d;
   }
 
   .krx-auth-page-bg {
-    background: linear-gradient(135deg, #eef2ff 0%, #f0fdfa 30%, #f5f3ff 60%, #fff1f2 100%);
+    background: linear-gradient(145deg, #0d1117 0%, #0f1b2a 35%, #0b1b23 70%, #0d1117 100%);
   }
 
   .krx-mark-gradient {
-    background: linear-gradient(135deg, #4338ca, #6366f1, #a855f7);
-    box-shadow: 0 8px 24px -4px #6366f140;
+    background: linear-gradient(135deg, #0891b2, #22d3ee, #06b6d4);
+    box-shadow: 0 8px 24px -4px rgba(34, 211, 238, 0.25);
   }
 
   .krx-cta-button {
-    background: linear-gradient(135deg, #4338ca, #6366f1);
-    box-shadow: 0 2px 8px -2px #4338ca40;
+    background: linear-gradient(135deg, #06b6d4, #22d3ee);
+    box-shadow: 0 2px 8px -2px rgba(34, 211, 238, 0.35);
   }
 
   .krx-logo-tile {
-    background: linear-gradient(135deg, #4338ca, #6366f1);
+    background: linear-gradient(135deg, #06b6d4, #22d3ee);
   }
 
   .card {
-    @apply bg-white rounded-hds-xl;
-    box-shadow: 0 0 0 1px #e2e8f018, 0 1px 3px 0 #64748b12, 0 4px 8px -2px #64748b0a;
+    @apply bg-neutral-100 rounded-hds-xl;
+    box-shadow: 0 0 0 1px #30363d99, 0 1px 3px 0 #00000045, 0 4px 8px -2px #00000030;
   }
 
   .btn {
@@ -86,46 +87,46 @@
   }
 
   .btn:focus-visible {
-    box-shadow: inset 0 0 0 1px #4f46e5, 0 0 0 3px #a5b4fc;
+    box-shadow: inset 0 0 0 1px #22d3ee, 0 0 0 3px rgba(34, 211, 238, 0.35);
     outline: none;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-hds-md px-4 py-2 text-sm font-semibold text-white transition-all
+    @apply inline-flex items-center justify-center rounded-hds-md px-4 py-2 text-sm font-semibold text-neutral-50 transition-all
            bg-action-200 hover:bg-action-300 active:bg-action-400
            disabled:pointer-events-none disabled:opacity-50;
-    box-shadow: 0 1px 2px 0 #4f46e51a;
+    box-shadow: 0 1px 2px 0 rgba(34, 211, 238, 0.2);
   }
 
   .btn-primary:focus-visible {
-    box-shadow: inset 0 0 0 1px #4f46e5, 0 0 0 3px #a5b4fc;
+    box-shadow: inset 0 0 0 1px #22d3ee, 0 0 0 3px rgba(34, 211, 238, 0.35);
     outline: none;
   }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center rounded-hds-md px-4 py-2 text-sm font-medium text-neutral-600 transition-all
-           bg-white hover:bg-neutral-50 active:bg-neutral-100
+           bg-neutral-200 hover:bg-neutral-300 active:bg-neutral-300
            disabled:pointer-events-none disabled:opacity-50;
-    box-shadow: 0 0 0 1px #e2e8f0, 0 1px 2px 0 #64748b0d;
+    box-shadow: 0 0 0 1px #30363d, 0 1px 2px 0 #00000040;
   }
 
   .btn-secondary:hover {
-    box-shadow: 0 0 0 1px #cbd5e1, 0 1px 3px 0 #64748b14;
+    box-shadow: 0 0 0 1px #484f58, 0 1px 3px 0 #00000052;
   }
 
   .btn-secondary:focus-visible {
-    box-shadow: inset 0 0 0 1px #4f46e5, 0 0 0 3px #a5b4fc;
+    box-shadow: inset 0 0 0 1px #22d3ee, 0 0 0 3px rgba(34, 211, 238, 0.35);
     outline: none;
   }
 
   .btn-ghost {
     @apply inline-flex items-center justify-center rounded-hds-md px-3 py-2 text-sm font-medium transition-all
-           text-action-300 hover:bg-action-50 active:bg-action-100
+           text-action-200 hover:bg-action-50 active:bg-neutral-200
            disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-ghost:focus-visible {
-    box-shadow: inset 0 0 0 1px #4f46e5, 0 0 0 3px #a5b4fc;
+    box-shadow: inset 0 0 0 1px #22d3ee, 0 0 0 3px rgba(34, 211, 238, 0.35);
     outline: none;
   }
 
@@ -135,50 +136,50 @@
 
   .badge-success {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-           bg-success-50 text-success-400 border border-success-100;
+           bg-success-50 text-success-200 border border-success-100;
   }
 
   .badge-warning {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-           bg-warning-50 text-warning-400 border border-warning-100;
+           bg-warning-50 text-warning-200 border border-warning-100;
   }
 
   .badge-danger {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-           bg-critical-50 text-critical-400 border border-critical-100;
+           bg-critical-50 text-critical-200 border border-critical-100;
   }
 
   .badge-info {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-           bg-action-50 text-action-300 border border-action-100;
+           bg-action-50 text-action-200 border border-action-100;
   }
 
   .badge-neutral {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-           text-neutral-500 bg-neutral-100 border border-neutral-200;
+           text-neutral-500 bg-neutral-200 border border-neutral-300;
   }
 
   .input {
-    @apply flex h-10 w-full rounded-hds-md bg-white px-3 py-2 text-sm
+    @apply flex h-10 w-full rounded-hds-md bg-neutral-100 px-3 py-2 text-sm
            text-neutral-700 placeholder:text-neutral-400
            disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-neutral-50;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #30363d;
     transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   .input:hover {
-    border-color: #cbd5e1;
+    border-color: #484f58;
   }
 
   .input:focus {
-    box-shadow: inset 0 0 0 1px #4f46e5, 0 0 0 3px #a5b4fc;
+    box-shadow: inset 0 0 0 1px #22d3ee, 0 0 0 3px rgba(34, 211, 238, 0.35);
     outline: none;
     border-color: transparent;
   }
 
   .table-container {
     @apply overflow-x-auto rounded-hds-xl;
-    box-shadow: 0 0 0 1px #e2e8f018, 0px 1px 3px 0px #64748b0a;
+    box-shadow: 0 0 0 1px #30363d99, 0px 1px 3px 0px #00000038;
   }
 
   .table {
@@ -198,11 +199,11 @@
   }
 
   .table tbody tr {
-    @apply bg-white hover:bg-neutral-50 transition-colors;
+    @apply bg-neutral-100 hover:bg-neutral-200 transition-colors;
   }
 
   .table tbody tr:not(:last-child) {
-    @apply border-b border-neutral-100;
+    @apply border-b border-neutral-200;
   }
 }
 
@@ -239,6 +240,15 @@
   animation: slideIn 0.2s ease-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-slideIn,
+  .krx-gamification-shimmer::before,
+  .krx-badge-shine {
+    animation: none !important;
+  }
+}
+
 /* Gamification skeleton / badge polish */
 @keyframes krxGamificationShimmer {
   0% {
@@ -256,7 +266,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.55) 45%,
+    rgba(34, 211, 238, 0.12) 45%,
     transparent 90%
   );
   animation: krxGamificationShimmer 1.8s ease-in-out infinite;
@@ -276,7 +286,7 @@
   background: linear-gradient(
     125deg,
     transparent 30%,
-    rgba(255, 255, 255, 0.55) 48%,
+    rgba(34, 211, 238, 0.35) 48%,
     transparent 62%
   );
   animation: krxBadgeShine 3s ease-in-out infinite;

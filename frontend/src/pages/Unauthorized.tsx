@@ -17,7 +17,10 @@ export function Unauthorized() {
         
         <h1 className="text-2xl font-bold text-neutral-700 mb-4">Access Denied</h1>
         
-        <div className="bg-white/80 backdrop-blur-sm rounded-hds-xl p-8 mb-6" style={{ boxShadow: '0 0 0 1px #e2e8f020, 0 4px 6px -1px #64748b10, 0 20px 40px -8px #6366f115' }}>
+        <div
+          className="bg-neutral-100/90 backdrop-blur-sm border border-neutral-200 rounded-hds-xl p-8 mb-6"
+          style={{ boxShadow: '0 0 0 1px #27272a80, 0 4px 6px -1px #00000050, 0 20px 40px -8px rgba(34, 211, 238, 0.08)' }}
+        >
           <p className="text-neutral-600 mb-4">
             You do not have permission to access this application.
           </p>

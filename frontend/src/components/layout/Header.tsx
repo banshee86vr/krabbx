@@ -36,7 +36,7 @@ export function Header() {
         <button
           type="button"
           onClick={() => setShowMobileMenu(!showMobileMenu)}
-          className="lg:hidden p-2 rounded-hds-sm text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
+          className="lg:hidden p-2 rounded-hds-sm text-white/75 hover:text-white hover:bg-white/10 transition-colors"
         >
           {showMobileMenu ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -47,7 +47,7 @@ export function Header() {
             'w-2 h-2 rounded-full',
             isConnected ? 'bg-success-200' : 'bg-neutral-400'
           )} />
-          <span className="text-sm text-indigo-200">
+          <span className="text-sm text-white/75">
             {isConnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
@@ -62,8 +62,8 @@ export function Header() {
             className={cn(
               'inline-flex items-center gap-2 px-3 py-1.5 rounded-hds-sm font-medium text-sm transition-colors',
               scanMutation.isPending || scan.isScanning
-                ? 'text-indigo-300 cursor-not-allowed'
-                : 'text-indigo-200 hover:text-white hover:bg-white/10'
+                ? 'text-white/45 cursor-not-allowed'
+                : 'text-white/75 hover:text-white hover:bg-white/10'
             )}
           >
             <RefreshCw className={cn('w-4 h-4', (scanMutation.isPending || scan.isScanning) && 'animate-spin')} />
@@ -77,7 +77,7 @@ export function Header() {
             <button
               type="button"
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-hds-sm font-medium text-sm transition-colors text-indigo-200 hover:text-white hover:bg-white/10"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-hds-sm font-medium text-sm transition-colors text-white/75 hover:text-white hover:bg-white/10"
             >
               {user?.avatar_url ? (
                 <img
@@ -93,7 +93,7 @@ export function Header() {
 
             {/* User dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-hds-lg shadow-hds-surface-higher animate-fadeIn">
+              <div className="absolute right-0 mt-2 w-64 bg-neutral-100 rounded-hds-lg shadow-hds-surface-higher border border-neutral-200 animate-fadeIn">
                 <div className="px-4 py-3 border-b border-neutral-200">
                   <p className="text-sm font-medium text-neutral-700">{user?.name}</p>
                   <p className="text-xs text-neutral-500">{user?.email}</p>
@@ -105,7 +105,7 @@ export function Header() {
                       setShowUserMenu(false);
                       handleLogout();
                     }}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-left text-neutral-600 hover:bg-neutral-100 transition-colors"
+                    className="w-full flex items-center gap-2 px-4 py-2 text-sm text-left text-neutral-600 hover:bg-neutral-200 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -119,8 +119,8 @@ export function Header() {
 
       {/* Mobile navigation */}
       {showMobileMenu && (
-        <div className="lg:hidden border-t border-indigo-500/30 animate-slideIn krx-header">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-indigo-500/30">
+        <div className="lg:hidden border-t border-white/10 animate-slideIn krx-header">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-white/10">
             <div className="flex items-center justify-center w-8 h-8 rounded-hds-sm bg-white/15 text-white">
               <Bot className="w-5 h-5" />
             </div>
@@ -137,7 +137,7 @@ export function Header() {
                     'flex items-center gap-3 px-3 py-2 rounded-hds-sm text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-white/15 text-white'
-                      : 'text-indigo-200 hover:bg-white/10 hover:text-white'
+                      : 'text-white/75 hover:bg-white/10 hover:text-white'
                   )
                 }
               >

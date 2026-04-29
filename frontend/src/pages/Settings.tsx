@@ -162,7 +162,7 @@ export function Settings() {
                 )}
               >
                 {(scanMutation.isPending || scan.isScanning) && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-500/15 to-transparent animate-pulse" />
                 )}
                 <RefreshCw className={cn('w-4 h-4 relative z-10', (scanMutation.isPending || scan.isScanning) && 'animate-spin')} />
                 <span className="relative z-10">{(scanMutation.isPending || scan.isScanning) ? 'Scanning...' : 'Scan Now'}</span>

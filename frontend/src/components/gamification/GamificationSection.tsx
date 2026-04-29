@@ -20,13 +20,13 @@ const BADGE_ART: Record<
     icon: TrendingDown,
   },
   consistent_maintainer_org: {
-    gradient: 'from-violet-500 via-indigo-500 to-blue-600',
-    ring: 'ring-violet-300/50',
+    gradient: 'from-cyan-500 via-teal-600 to-emerald-700',
+    ring: 'ring-cyan-400/35',
     icon: Activity,
   },
   zero_major_drift_repo: {
-    gradient: 'from-sky-400 via-blue-500 to-indigo-600',
-    ring: 'ring-sky-300/50',
+    gradient: 'from-sky-500 via-cyan-500 to-teal-600',
+    ring: 'ring-sky-400/35',
     icon: ShieldCheck,
   },
 };
@@ -78,9 +78,9 @@ export interface GamificationSectionProps {
 export function GamificationSection({ summary, isLoading, error }: GamificationSectionProps) {
   if (error && !summary && !isLoading) {
     return (
-      <div className="card border border-rose-100 bg-rose-50/40 p-4 text-sm text-rose-800">
+      <div className="card border border-rose-900/40 bg-rose-950/35 p-4 text-sm text-rose-100">
         <p className="font-medium">Could not load achievements</p>
-        <p className="mt-1 text-rose-700/90">{error.message}</p>
+        <p className="mt-1 text-rose-300">{error.message}</p>
       </div>
     );
   }
@@ -107,7 +107,7 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
                     <div className="h-8 w-8 shrink-0 rounded-full bg-neutral-100" />
                     <div className="flex-1 space-y-2">
                       <div className="h-4 w-2/3 rounded bg-neutral-100" />
-                      <div className="h-3 w-1/2 rounded bg-neutral-50" />
+                      <div className="h-3 w-1/2 rounded bg-neutral-50/80" />
                     </div>
                   </div>
                 ))}
@@ -125,13 +125,13 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
 
   if (!summary.enabled) {
     return (
-      <div className="card relative overflow-hidden border border-dashed border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-indigo-50/40 p-6">
-        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-indigo-200/30 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-6 left-1/4 h-24 w-24 rounded-full bg-violet-200/25 blur-xl" />
+      <div className="card relative overflow-hidden border border-dashed border-neutral-200 bg-gradient-to-br from-neutral-50 via-neutral-100 to-action-50/60 p-6">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-cyan-500/15 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-6 left-1/4 h-24 w-24 rounded-full bg-teal-600/10 blur-xl" />
         <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="rounded-hds-lg bg-white p-2.5 shadow-sm ring-1 ring-neutral-100">
-              <Sparkles className="h-6 w-6 text-indigo-400" />
+            <div className="rounded-hds-lg bg-neutral-200 p-2.5 shadow-sm ring-1 ring-neutral-300">
+              <Sparkles className="h-6 w-6 text-action-200" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-neutral-700">Achievements</h2>
@@ -153,7 +153,7 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
   const trend = summary.orgTrend14d;
   const trendChip =
     trend?.percentImproved != null && trend.percentImproved > 0 ? (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/50 px-2.5 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-emerald-800/60">
         <TrendingDown className="h-3.5 w-3.5" />
         ~{Math.round(trend.percentImproved * 100)}% fewer outdated vs window start
       </span>
@@ -165,13 +165,13 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
 
   return (
     <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-hds-xl p-[1px] shadow-lg shadow-indigo-500/10">
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-200/90 via-indigo-400/50 to-violet-500/60 opacity-90" />
-        <div className="relative rounded-hds-xl bg-white/95 backdrop-blur-sm">
-          <div className="border-b border-neutral-100/80 bg-gradient-to-r from-indigo-50/50 via-white to-amber-50/30 px-4 py-3 sm:px-6">
+      <div className="relative overflow-hidden rounded-hds-xl p-[1px] shadow-lg shadow-cyan-500/10">
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-600/25 via-cyan-500/35 to-violet-600/30 opacity-95" />
+        <div className="relative rounded-hds-xl bg-neutral-100/95 backdrop-blur-sm">
+          <div className="border-b border-neutral-200 bg-gradient-to-r from-amber-950/40 via-neutral-100 to-action-50/50 px-4 py-3 sm:px-6">
             <div className="flex flex-wrap items-center gap-2">
-              <Sparkles className="h-5 w-5 text-indigo-500" aria-hidden />
-              <h2 className="text-base font-semibold text-neutral-800">Health & achievements</h2>
+              <Sparkles className="h-5 w-5 text-action-200" aria-hidden />
+              <h2 className="text-base font-semibold text-neutral-700">Health & achievements</h2>
               <span className="ml-auto text-xs font-medium text-neutral-400">Score {summary.scoreVersion}</span>
             </div>
             {trendChip && <div className="mt-2">{trendChip}</div>}
@@ -182,7 +182,7 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Leaderboard */}
         <div className="card relative overflow-hidden p-6">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.12),transparent)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(34,211,238,0.1),transparent)]" />
           <div className="relative">
             <div className="mb-3 flex items-center gap-2">
               <Trophy className="h-5 w-5 text-amber-500" />
@@ -192,13 +192,13 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
             {summary.leaderboard.length === 0 ? (
               <p className="text-sm text-neutral-500">Run a scan to populate repository health scores.</p>
             ) : (
-              <ul className="divide-y divide-neutral-100">
+              <ul className="divide-y divide-neutral-200">
                 {summary.leaderboard.map((row) => (
                   <li key={row.repositoryId}>
                     <Link
                       to={`/repositories/${row.repositoryId}#repo-health`}
                       title="Open repository — health score & formula"
-                      className="-mx-2 flex items-center justify-between rounded-hds-md px-2 py-3 transition-colors hover:bg-indigo-50/40"
+                      className="-mx-2 flex items-center justify-between rounded-hds-md px-2 py-3 transition-colors hover:bg-action-50/50"
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <PodiumRank rank={row.rank} />
@@ -212,9 +212,9 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
                       <span
                         className={cn(
                           'flex-shrink-0 rounded-hds-sm px-2.5 py-1 text-sm font-bold tabular-nums ring-1 ring-inset',
-                          row.score >= 80 && 'bg-emerald-50 text-emerald-700 ring-emerald-100',
-                          row.score >= 50 && row.score < 80 && 'bg-amber-50 text-amber-800 ring-amber-100',
-                          row.score < 50 && 'bg-rose-50 text-rose-700 ring-rose-100',
+                          row.score >= 80 && 'bg-emerald-950/55 text-emerald-300 ring-emerald-800/60',
+                          row.score >= 50 && row.score < 80 && 'bg-amber-950/50 text-amber-200 ring-amber-800/50',
+                          row.score < 50 && 'bg-rose-950/50 text-rose-300 ring-rose-900/50',
                         )}
                       >
                         {row.score}
@@ -257,9 +257,9 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
                   return (
                     <li
                       key={`${badge.badgeId}-${badge.repositoryId ?? 'org'}-${badge.unlockedAt}`}
-                      className="group relative overflow-hidden rounded-hds-xl border border-neutral-100 bg-white p-4 shadow-sm transition-all hover:border-indigo-100 hover:shadow-md"
+                      className="group relative overflow-hidden rounded-hds-xl border border-neutral-200 bg-neutral-100 p-4 shadow-sm transition-all hover:border-action-100 hover:shadow-md"
                     >
-                      <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-white to-indigo-50 opacity-0 transition-opacity group-hover:opacity-100" />
+                      <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-action-50 to-neutral-200 opacity-0 transition-opacity group-hover:opacity-100" />
                       <div className="relative flex gap-4">
                         <div
                           className={cn(
@@ -272,10 +272,10 @@ export function GamificationSection({ summary, isLoading, error }: GamificationS
                           <span className="krx-badge-shine pointer-events-none absolute inset-0 rounded-full" />
                         </div>
                         <div className="min-w-0 flex-1 pt-0.5">
-                          <p className="font-semibold text-neutral-800">{badge.label}</p>
+                          <p className="font-semibold text-neutral-700">{badge.label}</p>
                           <p className="mt-1 text-sm text-neutral-500">{badge.description}</p>
                           {badge.scope === 'repository' && badge.repositoryName && (
-                            <p className="mt-2 text-xs font-medium text-indigo-600">
+                            <p className="mt-2 text-xs font-medium text-action-200">
                               {badge.repositoryName}
                             </p>
                           )}

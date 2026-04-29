@@ -52,13 +52,13 @@ export function AvatarGroup({ contributors, max = 4, size = 'md' }: AvatarGroupP
             src={contributor.avatarUrl}
             alt={contributor.login}
             size={size}
-            className="ring-2 ring-white hover:ring-action-300"
+            className="ring-2 ring-neutral-100 hover:ring-action-200"
           />
         </a>
       ))}
       {remaining > 0 && (
         <div className={cn(
-          'rounded-full bg-neutral-100 text-neutral-500 font-semibold flex items-center justify-center border border-neutral-200 ring-2 ring-white',
+          'rounded-full bg-neutral-200 text-neutral-500 font-semibold flex items-center justify-center border border-neutral-300 ring-2 ring-neutral-100',
           {
             'w-6 h-6 text-xs': size === 'sm',
             'w-8 h-8 text-xs': size === 'md',

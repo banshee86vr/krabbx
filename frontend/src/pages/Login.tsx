@@ -25,7 +25,10 @@ export function Login() {
           <p className="text-neutral-500">Monitor Renovate Bot adoption and outdated dependencies</p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-hds-xl p-8" style={{ boxShadow: '0 0 0 1px #e2e8f020, 0 4px 6px -1px #64748b10, 0 20px 40px -8px #6366f115' }}>
+        <div
+          className="bg-neutral-100/90 backdrop-blur-sm border border-neutral-200 rounded-hds-xl p-8"
+          style={{ boxShadow: '0 0 0 1px #27272a80, 0 4px 6px -1px #00000050, 0 20px 40px -8px rgba(34, 211, 238, 0.08)' }}
+        >
           {error && (
             <div className="mb-6 p-4 rounded-hds-md text-sm bg-critical-50 text-critical-400 border border-critical-100">
               {error}

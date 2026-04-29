@@ -35,16 +35,16 @@ import { useScan } from '../context/ScanContext';
 import { GamificationSection } from '../components/gamification/GamificationSection';
 
 const chartColors = {
-  barFill: '#818cf8',
+  barFill: '#22d3ee',
   lineStroke: '#34d399',
   lineDot: '#10b981',
-  gridStroke: '#e2e8f0',
-  axisStroke: '#94a3b8',
-  tooltipBg: '#ffffff',
-  tooltipBorder: '#e2e8f0',
-  tooltipText: '#475569',
-  pieAdopted: '#6366f1',
-  pieNotAdopted: '#e2e8f0',
+  gridStroke: '#27272a',
+  axisStroke: '#71717a',
+  tooltipBg: '#18181b',
+  tooltipBorder: '#3f3f46',
+  tooltipText: '#e4e4e7',
+  pieAdopted: '#22d3ee',
+  pieNotAdopted: '#3f3f46',
 };
 
 export function Dashboard() {
@@ -249,7 +249,7 @@ export function Dashboard() {
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-lg font-semibold text-neutral-700">Dependency Trends</h2>
             {scan.isScanning && (
-              <Loader2 className="w-4 h-4 text-action-300 animate-spin" />
+              <Loader2 className="w-4 h-4 text-action-200 animate-spin" />
             )}
           </div>
           <div className="h-72 relative">
@@ -338,7 +338,7 @@ export function Dashboard() {
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-lg font-semibold text-neutral-700">Adoption Rate</h2>
             {scan.isScanning && (
-              <Loader2 className="w-4 h-4 text-action-300 animate-spin" />
+              <Loader2 className="w-4 h-4 text-action-200 animate-spin" />
             )}
           </div>
           <div className="h-48 relative">
@@ -398,17 +398,17 @@ export function Dashboard() {
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-neutral-700">Top Outdated Repositories</h2>
               {scan.isScanning && (
-                <Loader2 className="w-4 h-4 text-action-300 animate-spin" />
+                <Loader2 className="w-4 h-4 text-action-200 animate-spin" />
               )}
             </div>
           </div>
-          <div className="divide-y divide-neutral-100 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <div className="divide-y divide-neutral-200 flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {summary?.topOutdated && summary.topOutdated.length > 0 ? (
               summary.topOutdated.map((repo) => (
                 <Link
                   key={repo.id}
                   to={`/repositories/${repo.id}`}
-                  className="flex items-center justify-between px-6 py-4 hover:bg-neutral-100 transition-colors"
+                  className="flex items-center justify-between px-6 py-4 hover:bg-neutral-200 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <GitBranch className="w-5 h-5 text-neutral-400" />
@@ -434,7 +434,7 @@ export function Dashboard() {
                       </div>
                     )}
                     {repo.updateTypeSummary.patch > 0 && (
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase bg-action-50 text-action-300 border border-action-100">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase bg-action-50 text-action-200 border border-action-100">
                         <Info className="w-3.5 h-3.5" />
                         <span>{repo.updateTypeSummary.patch}</span>
                       </div>
@@ -452,7 +452,7 @@ export function Dashboard() {
             )}
           </div>
           <div className="px-6 py-3 border-t border-neutral-200 bg-neutral-50 flex-shrink-0">
-            <Link to="/repositories?hasOutdated=true" className="text-sm text-action-300 hover:text-action-400">
+            <Link to="/repositories?hasOutdated=true" className="text-sm text-action-200 hover:text-action-300">
               View all repositories
             </Link>
           </div>
@@ -463,11 +463,11 @@ export function Dashboard() {
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-neutral-700">Top Outdated Dependencies</h2>
               {scan.isScanning && (
-                <Loader2 className="w-4 h-4 text-action-300 animate-spin" />
+                <Loader2 className="w-4 h-4 text-action-200 animate-spin" />
               )}
             </div>
           </div>
-          <div className="divide-y divide-neutral-100 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <div className="divide-y divide-neutral-200 flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {topOutdated && topOutdated.length > 0 ? (
               topOutdated.map((dep) => (
                 <TopOutdatedDependencyItem key={`${dep.packageName}-${dep.packageManager}`} dependency={dep} />
@@ -482,7 +482,7 @@ export function Dashboard() {
             )}
           </div>
           <div className="px-6 py-3 border-t border-neutral-200 bg-neutral-50 flex-shrink-0">
-            <Link to="/dependencies?isOutdated=true" className="text-sm text-action-300 hover:text-action-400">
+            <Link to="/dependencies?isOutdated=true" className="text-sm text-action-200 hover:text-action-300">
               View all outdated dependencies
             </Link>
           </div>
@@ -493,11 +493,11 @@ export function Dashboard() {
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-neutral-700">Recent Activity</h2>
               {scan.isScanning && (
-                <Loader2 className="w-4 h-4 text-action-300 animate-spin" />
+                <Loader2 className="w-4 h-4 text-action-200 animate-spin" />
               )}
             </div>
           </div>
-          <div className="divide-y divide-neutral-100 flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          <div className="divide-y divide-neutral-200 flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {summary?.recentScans && summary.recentScans.length > 0 ? (
               summary.recentScans.map((scan) => (
                 <div key={scan.id} className="flex items-center justify-between px-6 py-4">
@@ -571,7 +571,7 @@ function TopOutdatedDependencyItem({ dependency }: {
   const updateTypeClasses: Record<string, string> = {
     major: 'bg-critical-50 text-critical-400 border border-critical-100',
     minor: 'bg-warning-50 text-warning-400 border border-warning-100',
-    patch: 'bg-action-50 text-action-300 border border-action-100',
+    patch: 'bg-action-50 text-action-200 border border-action-100',
   };
 
   const badgeClass = dependency.updateType && updateTypeClasses[dependency.updateType]
@@ -582,7 +582,7 @@ function TopOutdatedDependencyItem({ dependency }: {
     <div>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full text-left px-6 py-4 hover:bg-neutral-100 transition-colors"
+        className="w-full text-left px-6 py-4 hover:bg-neutral-200 transition-colors"
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -629,11 +629,11 @@ function TopOutdatedDependencyItem({ dependency }: {
               {dependency.repositories.map((repo) => (
                 <div
                   key={repo.id}
-                  className="flex items-center justify-between py-2.5 px-3 rounded-hds-sm bg-neutral-50 hover:bg-neutral-100 transition-colors"
+                  className="flex items-center justify-between py-2.5 px-3 rounded-hds-sm bg-neutral-50 hover:bg-neutral-200 transition-colors"
                 >
                   <Link
                     to={`/repositories/${repo.id}`}
-                    className="flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-action-300 transition-colors"
+                    className="flex items-center gap-2 text-sm font-medium text-neutral-600 hover:text-action-200 transition-colors"
                   >
                     <GitBranch className="w-4 h-4 flex-shrink-0" />
                     <span>{repo.name}</span>
@@ -643,7 +643,7 @@ function TopOutdatedDependencyItem({ dependency }: {
                       href={repo.prUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-action-300 hover:text-action-400 rounded-full bg-action-50 transition-colors"
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-action-200 hover:text-action-300 rounded-full bg-action-50 transition-colors"
                     >
                       <span>View PR</span>
                       <ExternalLink className="w-3 h-3" />
@@ -661,15 +661,15 @@ function TopOutdatedDependencyItem({ dependency }: {
 
 function StatCard({ title, value, icon: Icon, color, subtitle, isScanning }: StatCardProps) {
   const colorConfig = {
-    primary: { bg: 'linear-gradient(135deg, #eef2ff, #e0e7ff)', icon: 'text-action-200', border: '#c7d2fe' },
-    success: { bg: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', icon: 'text-success-200', border: '#a7f3d0' },
-    warning: { bg: 'linear-gradient(135deg, #fffbeb, #fef3c7)', icon: 'text-warning-200', border: '#fde68a' },
-    info: { bg: 'linear-gradient(135deg, #f0f9ff, #e0f2fe)', icon: 'text-sky-300', border: '#bae6fd' },
+    primary: { bg: 'linear-gradient(135deg, #0c181c, #164e63)', icon: 'text-action-200', border: '#164e63' },
+    success: { bg: 'linear-gradient(135deg, #052e1e, #064e3b)', icon: 'text-success-200', border: '#065f46' },
+    warning: { bg: 'linear-gradient(135deg, #422006, #713f12)', icon: 'text-warning-200', border: '#b45309' },
+    info: { bg: 'linear-gradient(135deg, #082f49, #0c4a6e)', icon: 'text-sky-200', border: '#0369a1' },
   };
   const cfg = colorConfig[color];
 
   return (
-    <div className="bg-white rounded-hds-xl p-6 transition-all hover:shadow-md" style={{ boxShadow: `0 0 0 1px ${cfg.border}40, 0 1px 3px 0 #64748b0a` }}>
+    <div className="bg-neutral-100 rounded-hds-xl p-6 transition-all hover:shadow-md border border-neutral-200" style={{ boxShadow: `0 1px 3px 0 #00000038` }}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2">
