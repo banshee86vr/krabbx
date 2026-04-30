@@ -134,8 +134,8 @@ importers:
   frontend:
     dependencies:
       '@hashicorp/design-system-tokens':
-        specifier: ^4.0.1
-        version: 4.0.1
+        specifier: ^5.0.0
+        version: 5.0.0
       '@tanstack/react-query':
         specifier: ^5.95.2
         version: 5.97.0(react@19.2.5)
@@ -516,8 +516,8 @@ packages:
     resolution: {integrity: sha512-iH1B076HoAshH1mLpHMgwdGeTs0CYwL0SPMkGuSebZrwBp16v415e9NZXg2jtrqPVQjf6IANe2Vtlr5KswtcZQ==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@hashicorp/design-system-tokens@4.0.1':
-    resolution: {integrity: sha512-9d4nHitVdJUgRpDMZjAQWL7XjThc049FX2727xSSSUY6dQeL7jrYtEoMKvHAH3PsMF4cA2Ta+/knwEmDo0fPAQ==}
+  '@hashicorp/design-system-tokens@5.0.0':
+    resolution: {integrity: sha512-4taxSrUW79N8Xoepa9xrYitCws3JyecCX1zPDeMiOub2DeOIaId0UWhcL+w15jyWQhbJqy5bwAp3eToyGz3Yaw==}
 
   '@hono/node-server@2.0.0':
     resolution: {integrity: sha512-n3GfHwwCvHCkGmOwKfxUPOlbfzuO64Sbc5XC4NGPIXxkuOnJrdgExdRKmHfF924r914WRJPT397GdqLvdYTeyQ==}
@@ -3127,7 +3127,7 @@ snapshots:
       '@eslint/core': 1.1.1
       levn: 0.4.1
 
-  '@hashicorp/design-system-tokens@4.0.1': {}
+  '@hashicorp/design-system-tokens@5.0.0': {}
 
   '@hono/node-server@2.0.0(hono@4.12.15)':
     dependencies:
