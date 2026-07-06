@@ -1,10 +1,10 @@
 # Build stage
-FROM node:25-alpine AS builder
+FROM node:26-alpine AS builder
 
 WORKDIR /workspace
 
 # Install pnpm
-RUN npm install -g pnpm@10
+RUN npm install -g pnpm@11
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -22,7 +22,7 @@ COPY frontend/ ./frontend/
 RUN cd frontend && pnpm run build
 
 # Production stage - using minimal nginx
-FROM nginx:1.29.8-alpine
+FROM nginx:1.30.0-alpine
 
 # Apply latest security patches from Alpine repos (Trivy: e.g. libpng/zlib)
 USER root
