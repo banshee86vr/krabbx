@@ -35,7 +35,7 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v5
         with:
-          version: 10
+          version: 11
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -78,6 +78,7 @@ jobs:
           exit-code: "1"
           scanners: vuln
           ignore-unfixed: false
+          limit-severities-for-sarif: true
 
       - name: Upload Trivy filesystem scan results
         if: success()
@@ -107,6 +108,7 @@ jobs:
           exit-code: "1"
           scanners: vuln
           ignore-unfixed: false
+          limit-severities-for-sarif: true
 
       - name: Upload Trivy backend image scan results
         if: success()
@@ -136,6 +138,7 @@ jobs:
           exit-code: "1"
           scanners: vuln
           ignore-unfixed: false
+          limit-severities-for-sarif: true
 
       - name: Upload Trivy frontend image scan results
         if: success()
@@ -154,7 +157,7 @@ jobs:
         uses: actions/checkout@v6.0.2
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5.0.0
         with:
           fail-on-severity: high
 
@@ -169,7 +172,7 @@ jobs:
       - name: Set up pnpm
         uses: pnpm/action-setup@v5
         with:
-          version: 10
+          version: 11
 
       - name: Set up Node.js
         uses: actions/setup-node@v6

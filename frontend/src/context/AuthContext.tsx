@@ -69,6 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Synchronizing with the server's auth session on mount; there is no
+    // render-time equivalent for this external system check.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     checkAuth();
   }, []);
 
