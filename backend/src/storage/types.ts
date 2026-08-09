@@ -66,6 +66,19 @@ export interface AppSettings {
   updatedAt: Date;
 }
 
+export interface ApiToken {
+  id: string;
+  githubUserId: number;
+  login: string;
+  name: string;
+  tokenPrefix: string;
+  tokenHash: string;
+  scopes: string[];
+  createdAt: Date;
+  lastUsedAt: Date | null;
+  revokedAt: Date | null;
+}
+
 export type UpdateType = 'major' | 'minor' | 'patch' | 'digest' | 'pin' | 'rollback' | 'bump';
 
 /**
@@ -329,4 +342,11 @@ export interface IStorage {
 
   /** Per-repository health score breakdown (same inputs as leaderboard) */
   getHealthScoreBreakdownForRepository(repositoryId: string): Promise<HealthScoreBreakdownV1 | null>;
+
+  // Personal API tokens (MCP / automation)
+  createApiToken(data: Omit<ApiToken, 'id' | 'createdAt' | 'lastUsedAt' | 'revokedAt'>): Promise<ApiToken>;
+  listApiTokens(githubUserId: number): Promise<Omit<ApiToken, 'tokenHash'>[]>;
+  getApiTokenByHash(tokenHash: string): Promise<ApiToken | null>;
+  revokeApiToken(githubUserId: number, tokenId: string): Promise<boolean>;
+  touchApiTokenLastUsed(tokenId: string): Promise<void>;
 }

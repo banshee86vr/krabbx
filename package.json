@@ -19,7 +19,10 @@
     "test": "pnpm -r test",
     "docker:up": "docker-compose -f docker/docker-compose.yml up -d",
     "docker:down": "docker-compose -f docker/docker-compose.yml down",
-    "docker:build": "docker-compose -f docker/docker-compose.yml build"
+    "docker:build": "docker-compose -f docker/docker-compose.yml build",
+    "mcp:build": "pnpm --filter krabbx-mcp build",
+    "mcp": "pnpm --filter krabbx-mcp start",
+    "mcp:http": "pnpm --filter krabbx-mcp start:http"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

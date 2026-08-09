@@ -4,6 +4,7 @@ import type {
   Dependency,
   ScanHistory,
   AppSettings,
+  ApiToken,
   RepositoryFilters,
   DependencyFilters,
   PaginationOptions,
@@ -23,6 +24,8 @@ export class MemoryStorage implements IStorage {
   private dependencies: Map<string, Dependency> = new Map();
   private scanHistory: ScanHistory[] = [];
   private appSettings: AppSettings | null = null;
+  private apiTokens: Map<string, ApiToken> = new Map();
+  private apiTokenHashIndex: Map<string, string> = new Map();
 
   // Helper to match filters
   private matchesSearch(text: string | null | undefined, search: string): boolean {
@@ -810,5 +813,56 @@ export class MemoryStorage implements IStorage {
       majorOutdatedCount,
       openRenovatePRs: repo.openRenovatePRs,
     });
+  }
+
+  async createApiToken(
+    data: Omit<ApiToken, 'id' | 'createdAt' | 'lastUsedAt' | 'revokedAt'>,
+  ): Promise<ApiToken> {
+    if (this.apiTokenHashIndex.has(data.tokenHash)) {
+      throw new Error('token hash already exists');
+    }
+    const token: ApiToken = {
+      ...data,
+      id: generateId(),
+      scopes: [...data.scopes],
+      createdAt: new Date(),
+      lastUsedAt: null,
+      revokedAt: null,
+    };
+    this.apiTokens.set(token.id, token);
+    this.apiTokenHashIndex.set(token.tokenHash, token.id);
+    return { ...token, scopes: [...token.scopes] };
+  }
+
+  async listApiTokens(githubUserId: number): Promise<Omit<ApiToken, 'tokenHash'>[]> {
+    return Array.from(this.apiTokens.values())
+      .filter((t) => t.githubUserId === githubUserId && !t.revokedAt)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .map(({ tokenHash: _h, ...rest }) => ({ ...rest, scopes: [...rest.scopes] }));
+  }
+
+  async getApiTokenByHash(tokenHash: string): Promise<ApiToken | null> {
+    const id = this.apiTokenHashIndex.get(tokenHash);
+    if (!id) return null;
+    const token = this.apiTokens.get(id);
+    if (!token || token.revokedAt) return null;
+    return { ...token, scopes: [...token.scopes] };
+  }
+
+  async revokeApiToken(githubUserId: number, tokenId: string): Promise<boolean> {
+    const token = this.apiTokens.get(tokenId);
+    if (!token || token.githubUserId !== githubUserId || token.revokedAt) {
+      return false;
+    }
+    token.revokedAt = new Date();
+    this.apiTokenHashIndex.delete(token.tokenHash);
+    return true;
+  }
+
+  async touchApiTokenLastUsed(tokenId: string): Promise<void> {
+    const token = this.apiTokens.get(tokenId);
+    if (token) {
+      token.lastUsedAt = new Date();
+    }
   }
 }

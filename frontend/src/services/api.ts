@@ -69,11 +69,18 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
         },
       });
       if (retry.ok) {
+        if (retry.status === 204) {
+          return undefined as T;
+        }
         return retry.json();
       }
     }
     const error = await response.json().catch(() => ({ message: 'An error occurred' }));
     throw new Error((error as { message?: string }).message || `HTTP error ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json();
@@ -230,4 +237,30 @@ export const settingsApi = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+};
+
+export interface ApiToken {
+  id: string;
+  githubUserId: number;
+  login: string;
+  name: string;
+  tokenPrefix: string;
+  scopes: string[];
+  createdAt: string;
+  lastUsedAt?: string | null;
+  revokedAt?: string | null;
+}
+
+export interface CreatedApiToken extends ApiToken {
+  token: string;
+}
+
+export const tokensApi = {
+  list: () => fetchApi<{ data: ApiToken[] }>('/tokens'),
+  create: (name: string, scopes: Array<'read' | 'write'> = ['read', 'write']) =>
+    fetchApi<CreatedApiToken>('/tokens', {
+      method: 'POST',
+      body: JSON.stringify({ name, scopes }),
+    }),
+  revoke: (id: string) => fetchApi<void>(`/tokens/${id}`, { method: 'DELETE' }),
 };

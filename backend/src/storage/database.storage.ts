@@ -8,6 +8,7 @@ import type {
   Dependency,
   ScanHistory,
   AppSettings,
+  ApiToken,
   RepositoryFilters,
   DependencyFilters,
   PaginationOptions,
@@ -862,6 +863,63 @@ export class DatabaseStorage implements IStorage {
       outdatedDependencies: repo.outdatedDependencies,
       majorOutdatedCount,
       openRenovatePRs: repo.openRenovatePRs,
+    });
+  }
+
+  async createApiToken(
+    data: Omit<ApiToken, 'id' | 'createdAt' | 'lastUsedAt' | 'revokedAt'>,
+  ): Promise<ApiToken> {
+    const created = await this.prisma.apiToken.create({
+      data: {
+        githubUserId: data.githubUserId,
+        login: data.login,
+        name: data.name,
+        tokenPrefix: data.tokenPrefix,
+        tokenHash: data.tokenHash,
+        scopes: data.scopes,
+      },
+    });
+    return created as ApiToken;
+  }
+
+  async listApiTokens(githubUserId: number): Promise<Omit<ApiToken, 'tokenHash'>[]> {
+    const tokens = await this.prisma.apiToken.findMany({
+      where: { githubUserId, revokedAt: null },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        githubUserId: true,
+        login: true,
+        name: true,
+        tokenPrefix: true,
+        scopes: true,
+        createdAt: true,
+        lastUsedAt: true,
+        revokedAt: true,
+      },
+    });
+    return tokens as Omit<ApiToken, 'tokenHash'>[];
+  }
+
+  async getApiTokenByHash(tokenHash: string): Promise<ApiToken | null> {
+    const token = await this.prisma.apiToken.findFirst({
+      where: { tokenHash, revokedAt: null },
+    });
+    return token as ApiToken | null;
+  }
+
+  async revokeApiToken(githubUserId: number, tokenId: string): Promise<boolean> {
+    const result = await this.prisma.apiToken.updateMany({
+      where: { id: tokenId, githubUserId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    return result.count > 0;
+  }
+
+  async touchApiTokenLastUsed(tokenId: string): Promise<void> {
+    await this.prisma.apiToken.update({
+      where: { id: tokenId },
+      data: { lastUsedAt: new Date() },
     });
   }
 }

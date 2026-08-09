@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 import CSRF from 'csrf';
 
 import { AppError } from './errorHandler.js';
+import { authenticateBearer, looksLikeApiToken } from './auth.js';
 
 const tokens = new CSRF();
 
@@ -25,25 +26,41 @@ export function issueCsrfToken(req: Request): string {
 /**
  * Verify double-submit token on mutating /api requests.
  * Mounted at `/api` so `req.path` is the suffix (e.g. `/auth/logout`).
+ * CSRF is skipped only after a personal API token is validated.
  */
-export function csrfProtection(req: Request, _res: Response, next: NextFunction): void {
-  if (SAFE_METHODS.has(req.method)) {
+export async function csrfProtection(req: Request, _res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (SAFE_METHODS.has(req.method)) {
+      next();
+      return;
+    }
+
+    if (await authenticateBearer(req)) {
+      next();
+      return;
+    }
+
+    // Invalid krabbx_ Bearer must not fall through to cookie CSRF bypass tricks.
+    if (looksLikeApiToken(req)) {
+      next(new AppError(401, 'Invalid API token'));
+      return;
+    }
+
+    const path = req.path || '';
+    if (path === '/auth/callback' || path === '/auth/login') {
+      next();
+      return;
+    }
+
+    const secret = ensureCsrfSecret(req);
+    const headerToken = req.get('x-csrf-token') ?? req.get('X-CSRF-Token');
+    if (!headerToken || !tokens.verify(secret, headerToken)) {
+      next(new AppError(403, 'Invalid or missing CSRF token'));
+      return;
+    }
+
     next();
-    return;
+  } catch (error) {
+    next(error);
   }
-
-  const path = req.path || '';
-  if (path === '/auth/callback' || path === '/auth/login') {
-    next();
-    return;
-  }
-
-  const secret = ensureCsrfSecret(req);
-  const headerToken = req.get('x-csrf-token') ?? req.get('X-CSRF-Token');
-  if (!headerToken || !tokens.verify(secret, headerToken)) {
-    next(new AppError(403, 'Invalid or missing CSRF token'));
-    return;
-  }
-
-  next();
 }

@@ -12,7 +12,7 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { config } from './config/env.js';
 import { logger } from './lib/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import { requireAuth, addUserToRequest } from './middleware/auth.js';
+import { requireAuth, requireWriteScope, addUserToRequest } from './middleware/auth.js';
 import { csrfProtection } from './middleware/csrf.js';
 import { apiLimiter, authLimiter, scanLimiter } from './middleware/rateLimiter.js';
 import { authRoutes } from './routes/auth.routes.js';
@@ -20,6 +20,7 @@ import { dashboardRoutes } from './routes/dashboard.routes.js';
 import { dependencyRoutes } from './routes/dependency.routes.js';
 import { repositoryRoutes } from './routes/repository.routes.js';
 import { settingsRoutes } from './routes/settings.routes.js';
+import { tokenRoutes } from './routes/token.routes.js';
 import { SchedulerService } from './services/scheduler.service.js';
 import { disconnectStorage } from './storage/index.js';
 
@@ -237,13 +238,14 @@ app.use('/api/auth', authLimiter, authRoutes);
 // Protected API Routes (require authentication and rate limiting)
 app.use('/api', apiLimiter); // Apply general rate limiting to all API routes
 
-app.use('/api/repositories/:id/scan', requireAuth, scanLimiter); // Stricter limit for scan endpoints
-app.use('/api/repositories/scan', requireAuth, scanLimiter);
+app.use('/api/repositories/:id/scan', requireAuth, requireWriteScope, scanLimiter); // Stricter limit for scan endpoints
+app.use('/api/repositories/scan', requireAuth, requireWriteScope, scanLimiter);
 
-app.use('/api/repositories', requireAuth, repositoryRoutes);
-app.use('/api/dependencies', requireAuth, dependencyRoutes);
-app.use('/api/dashboard', requireAuth, dashboardRoutes);
-app.use('/api/settings', requireAuth, settingsRoutes);
+app.use('/api/repositories', requireAuth, requireWriteScope, repositoryRoutes);
+app.use('/api/dependencies', requireAuth, requireWriteScope, dependencyRoutes);
+app.use('/api/dashboard', requireAuth, requireWriteScope, dashboardRoutes);
+app.use('/api/settings', requireAuth, requireWriteScope, settingsRoutes);
+app.use('/api/tokens', requireAuth, requireWriteScope, tokenRoutes);
 
 // Error handling
 app.use(errorHandler);

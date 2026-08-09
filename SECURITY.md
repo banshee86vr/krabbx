@@ -28,7 +28,9 @@ We aim to acknowledge within a few business days and coordinate disclosure.
   - `TRUST_PROXY=1` (or the number of proxy hops) on the backend
   - `SESSION_COOKIE_SECURE=true` when the browser only uses HTTPS (default when `NODE_ENV=production` unless overridden).
 - Prefer **Redis-backed sessions** in production (`USE_REDIS=true`, `REDIS_URL=...`).
-- **CSRF**: The SPA obtains a token from `GET /api/auth/status` or `GET /api/auth/csrf`. All mutating `/api/*` calls must send header `X-CSRF-Token`.
+- **CSRF**: The SPA obtains a token from `GET /api/auth/status` or `GET /api/auth/csrf`. Cookie-session mutating `/api/*` calls must send header `X-CSRF-Token`. CSRF is skipped only after a personal API token is validated; a bogus `Authorization: Bearer …` header does not bypass CSRF.
+- **Personal API tokens**: Mint under Settings for MCP/automation. Store only the hash; show plaintext once. Prefer read-only scopes when write is not needed. Revoke leaked tokens immediately. Never put `GITHUB_TOKEN` or OAuth client secrets into MCP env vars.
+- **MCP HTTP**: Streamable HTTP requires `MCP_HTTP_TOKEN` on `/mcp` and defaults to `MCP_HOST=127.0.0.1`. Do not expose `/mcp` on a network without reverse-proxy auth. See [docs/mcp.md](docs/mcp.md).
 - **Helm**: Prefer `values-production.yaml` (or equivalent) — network policies, TLS ingress, pinned image tags, Redis auth, and **no** insecure auth flags.
 - **Docker Compose** binds services to **127.0.0.1** by default; do not expose Postgres/Redis to untrusted networks.
 - Run dependency and image scans in CI (`security.yml`), and review **Trivy** / **CodeQL** / **gitleaks** results regularly.

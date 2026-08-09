@@ -89,6 +89,22 @@ model AppSettings {
   updatedAt DateTime @updatedAt
 }
 
+model ApiToken {
+  id          String    @id @default(cuid())
+  githubUserId Int
+  login       String
+  name        String
+  tokenPrefix String
+  tokenHash   String    @unique
+  scopes      String[]  @default(["read", "write"])
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+
+  @@index([githubUserId])
+  @@index([tokenHash])
+}
+
 enum UpdateType {
   major
   minor

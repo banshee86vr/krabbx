@@ -111,6 +111,11 @@ pnpm run docker:down
 - `pnpm run test` - run frontend and backend tests
 - `pnpm run db:migrate` - run Prisma migrations
 - `pnpm run db:studio` - open Prisma Studio
+- `pnpm run mcp:build` / `pnpm run mcp` / `pnpm run mcp:http` - MCP server for agents
+
+## MCP
+
+Create a personal API token under **Settings → API tokens**, then see [docs/mcp.md](docs/mcp.md) for Cursor stdio and Streamable HTTP setup.
 
 ## Security
 

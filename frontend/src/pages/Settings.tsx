@@ -9,8 +9,11 @@ import {
   RefreshCw,
   Database,
   Server,
+  Key,
+  Copy,
+  Trash2,
 } from 'lucide-react';
-import { settingsApi, dashboardApi } from '../services/api';
+import { settingsApi, dashboardApi, tokensApi } from '../services/api';
 import { cn, formatDateTime } from '../lib/utils';
 import { useScan } from '../context/ScanContext';
 import { useSocket } from '../context/SocketContext';
@@ -36,6 +39,33 @@ export function Settings() {
 
   const [scanInterval, setScanInterval] = useState<number | null>(null);
   const [maxScanLimit, setMaxScanLimit] = useState<number | null>(null);
+  const [tokenName, setTokenName] = useState('');
+  const [tokenReadOnly, setTokenReadOnly] = useState(false);
+  const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [copyDone, setCopyDone] = useState(false);
+
+  const { data: tokensData, isLoading: tokensLoading } = useQuery({
+    queryKey: ['api-tokens'],
+    queryFn: tokensApi.list,
+  });
+
+  const createTokenMutation = useMutation({
+    mutationFn: () =>
+      tokensApi.create(tokenName.trim(), tokenReadOnly ? ['read'] : ['read', 'write']),
+    onSuccess: (created) => {
+      setCreatedToken(created.token);
+      setTokenName('');
+      setTokenReadOnly(false);
+      queryClient.invalidateQueries({ queryKey: ['api-tokens'] });
+    },
+  });
+
+  const revokeTokenMutation = useMutation({
+    mutationFn: (id: string) => tokensApi.revoke(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['api-tokens'] });
+    },
+  });
 
   const updateMutation = useMutation({
     mutationFn: settingsApi.update,
@@ -311,6 +341,112 @@ export function Settings() {
             <p className="text-sm text-neutral-500 mt-2">
               Limit the number of repositories scanned per full scan to avoid exceeding GitHub API rate limits
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* API tokens */}
+      <div className="card">
+        <div className="px-6 py-4 border-b border-neutral-200">
+          <div className="flex items-center gap-3">
+            <Key className="w-5 h-5 text-neutral-500" />
+            <h2 className="text-lg font-semibold text-neutral-700">API tokens</h2>
+          </div>
+        </div>
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-neutral-500">
+            Create a personal token for MCP clients and automation. The full token is shown only once.
+          </p>
+
+          {createdToken && (
+            <div className="rounded-hds-lg border border-warning-100 bg-warning-50 p-4 space-y-2">
+              <p className="text-sm font-medium text-warning-500">
+                Copy this token now. You will not see it again.
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-xs break-all bg-white px-3 py-2 rounded-hds-sm border border-warning-100">
+                  {createdToken}
+                </code>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(createdToken);
+                    setCopyDone(true);
+                    setTimeout(() => setCopyDone(false), 2000);
+                  }}
+                  className="btn-primary inline-flex items-center gap-1"
+                >
+                  <Copy className="w-4 h-4" />
+                  {copyDone ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <button
+                type="button"
+                className="text-xs text-warning-400 underline"
+                onClick={() => setCreatedToken(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-neutral-600 mb-1">Token name</label>
+              <input
+                type="text"
+                value={tokenName}
+                onChange={(e) => setTokenName(e.target.value)}
+                placeholder="e.g. Cursor MCP"
+                className="w-full px-3 py-2 rounded-hds-sm border border-neutral-200 text-sm"
+              />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-neutral-600 pb-2">
+              <input
+                type="checkbox"
+                checked={tokenReadOnly}
+                onChange={(e) => setTokenReadOnly(e.target.checked)}
+              />
+              Read-only
+            </label>
+            <button
+              type="button"
+              disabled={!tokenName.trim() || createTokenMutation.isPending}
+              onClick={() => createTokenMutation.mutate()}
+              className="btn-primary disabled:opacity-50"
+            >
+              {createTokenMutation.isPending ? 'Creating…' : 'Create token'}
+            </button>
+          </div>
+
+          <div className="divide-y divide-neutral-200 border border-neutral-200 rounded-hds-lg">
+            {tokensLoading && <p className="p-4 text-sm text-neutral-500">Loading tokens…</p>}
+            {!tokensLoading && (tokensData?.data?.length ?? 0) === 0 && (
+              <p className="p-4 text-sm text-neutral-500">No API tokens yet.</p>
+            )}
+            {tokensData?.data?.map((token) => (
+              <div key={token.id} className="flex items-center justify-between gap-3 p-4">
+                <div>
+                  <p className="font-medium text-neutral-700">{token.name}</p>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    {token.tokenPrefix}… · scopes: {token.scopes.join(', ')} · created{' '}
+                    {new Date(token.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Revoke token "${token.name}"?`)) {
+                      revokeTokenMutation.mutate(token.id);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-hds-sm border border-danger-200 text-danger-500 hover:bg-danger-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Revoke
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </div>
