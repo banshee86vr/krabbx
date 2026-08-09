@@ -288,7 +288,9 @@ export function Dashboard() {
                       color: chartColors.tooltipText,
                     }}
                     labelFormatter={(value) => {
-                      if (!value) return '';
+                      if (value == null || (typeof value !== 'string' && typeof value !== 'number')) {
+                        return '';
+                      }
                       const date = new Date(value);
                       if (Number.isNaN(date.getTime())) return '';
                       return date.toLocaleString('en-US', {

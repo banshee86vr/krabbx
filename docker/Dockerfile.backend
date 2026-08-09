@@ -51,9 +51,13 @@ RUN pnpm exec prisma generate
 # Copy built application from builder (includes post-tsc Prisma CJS patch from `pnpm run build`)
 COPY --from=builder /workspace/backend/dist ./dist
 
-# Cleanup to reduce image size (be selective - don't break pnpm!)
+# Cleanup to reduce image size (be selective - don't break pnpm!).
+# Drop global npm/npx after install: runtime only needs node, and npm's
+# nested deps (brace-expansion, ip-address) otherwise fail Trivy HIGH scans.
 RUN pnpm store prune && \
-    rm -rf /root/.npm /root/.cache /root/.local /root/.pnpm-store /tmp/* /var/cache/apk/*
+    npm uninstall -g npm || true && \
+    rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+      /root/.npm /root/.cache /root/.local /root/.pnpm-store /tmp/* /var/cache/apk/*
 
 # Create non-root user and set permissions
 RUN addgroup -g 1001 -S nodejs && \
