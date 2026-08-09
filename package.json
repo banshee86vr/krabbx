@@ -25,7 +25,7 @@
     "mcp:http": "pnpm --filter krabbx-mcp start:http"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^10.0.0"
   },
   "engines": {
     "node": ">=24.0.0"
