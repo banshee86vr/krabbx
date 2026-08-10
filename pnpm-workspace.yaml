@@ -25,7 +25,7 @@ overrides:
   esbuild: 0.28.1
   # 8.23.0 / pg-protocol 1.16.0 are under the same age gate.
   pg: 8.22.0
-  pg-protocol: 1.15.0
+  pg-protocol: 1.16.0
 
 onlyBuiltDependencies:
   - '@prisma/client'
