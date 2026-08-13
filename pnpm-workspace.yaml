@@ -24,7 +24,7 @@ overrides:
   # 0.28.2 is under pnpm's default 24h minimumReleaseAge; 0.28.1 is the security patch.
   esbuild: 0.28.1
   # 8.23.0 / pg-protocol 1.16.0 are under the same age gate.
-  pg: 8.22.0
+  pg: 8.23.0
   pg-protocol: 1.16.0
 
 onlyBuiltDependencies:
