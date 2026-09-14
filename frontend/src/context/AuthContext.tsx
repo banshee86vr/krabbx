@@ -69,9 +69,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Synchronizing with the server's auth session on mount; there is no
-    // render-time equivalent for this external system check.
-    checkAuth();
+    // Mount-time session sync against the server. Keep the async work and
+    // setState calls inside the fetch callbacks so we do not trip
+    // react-hooks/set-state-in-effect on a direct setState in the effect body.
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch(authStatusUrl(), {
+          credentials: 'include',
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          if (cancelled) {
+            return;
+          }
+          if (typeof data.csrfToken === 'string') {
+            setCsrfToken(data.csrfToken);
+          }
+          if (data.authenticated && data.user) {
+            setUser(data.user);
+          } else {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        if (!cancelled) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
