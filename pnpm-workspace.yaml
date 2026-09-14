@@ -28,6 +28,8 @@ overrides:
   pg-protocol: 1.16.0
   lucide-react: 1.33.0
   zod: 4.5.4
+  deepmerge-ts: '>=8.0.0'
+  mysql2: '>=3.22.0'
 
 onlyBuiltDependencies:
   - '@prisma/client'
