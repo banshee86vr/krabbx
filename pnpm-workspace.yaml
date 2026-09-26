@@ -26,8 +26,8 @@ overrides:
   # 8.23.0 / pg-protocol 1.16.0 are under the same age gate.
   pg: 8.23.0
   pg-protocol: 1.16.0
-  lucide-react: 1.33.0
-  zod: 4.5.4
+  lucide-react: 1.48.0
+  zod: 4.6.5
   deepmerge-ts: '>=8.0.0'
   mysql2: '>=3.22.0'
 
