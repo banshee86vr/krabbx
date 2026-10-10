@@ -30,6 +30,7 @@ overrides:
   zod: 4.6.5
   deepmerge-ts: '>=8.0.0'
   mysql2: '>=3.22.0'
+  lodash: '>=4.18.1'
 
 onlyBuiltDependencies:
   - '@prisma/client'
