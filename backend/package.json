@@ -37,7 +37,7 @@
     "pg": "^8.23.1",
     "redis": "^6.3.0",
     "socket.io": "^4.8.4",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

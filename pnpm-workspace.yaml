@@ -27,7 +27,12 @@ overrides:
   pg: 8.23.1
   pg-protocol: 1.16.0
   lucide-react: 1.79.0
-  zod: 4.6.5
+  # GHSA-mrhx-c7xc-m3w5: memory exhaustion on oversized constrained collections
+  zod: 4.6.7
+  # GHSA-27r3-jxmh-p828: DoS via trailing bytes after compressed request body
+  body-parser: '>=2.4.0'
+  # GHSA-7589-6fvf-x4pw: ReDoS in Schema.TemplateLiteral (Prisma @prisma/config). Stay on 3.x; effect 4 breaks Prisma config load.
+  effect: 3.22.5
   deepmerge-ts: '>=8.0.0'
   mysql2: '>=3.22.0'
   lodash: '>=4.18.1'
