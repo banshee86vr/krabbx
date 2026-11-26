@@ -1,4 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>banshee86vr/renovate-preset"]
+  "extends": ["github>banshee86vr/renovate-preset"],
+  "packageRules": [
+    {
+      "description": "Keep backend/frontend on TypeScript 6 until typescript-eslint supports the TS 7 API",
+      "matchPackageNames": ["typescript"],
+      "matchFileNames": ["backend/package.json", "frontend/package.json"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Postgres major upgrades need an explicit dump/restore or pg_upgrade plan",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
 }

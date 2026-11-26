@@ -3,8 +3,8 @@ FROM node:26-alpine AS builder
 
 WORKDIR /workspace
 
-# Install pnpm
-RUN npm install -g pnpm@11
+# Install pnpm (match packageManager in package.json)
+RUN npm install -g pnpm@12.23.0
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -33,7 +33,7 @@ WORKDIR /workspace
 
 # Apply latest security patches, then runtime dependencies
 RUN apk upgrade --no-cache && apk add --no-cache openssl wget && \
-    npm install -g npm@latest pnpm@11
+    npm install -g npm@latest pnpm@12.23.0
 
 # Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
