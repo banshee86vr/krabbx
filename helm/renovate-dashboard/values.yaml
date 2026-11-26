@@ -212,7 +212,7 @@ postgresql:
   
   image:
     repository: postgres
-    tag: "18-alpine"
+    tag: "19-alpine"
     pullPolicy: IfNotPresent
   
   # PostgreSQL credentials

@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:18-alpine
+    image: postgres:19-alpine
     container_name: renovate-dashboard-db
     restart: unless-stopped
     environment:
