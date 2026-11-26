@@ -8,6 +8,13 @@
       "matchFileNames": ["backend/package.json", "frontend/package.json"],
       "matchUpdateTypes": ["major"],
       "enabled": false
+    },
+    {
+      "description": "Postgres major upgrades need an explicit dump/restore or pg_upgrade plan",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
     }
   ]
 }

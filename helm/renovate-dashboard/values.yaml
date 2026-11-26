@@ -212,7 +212,7 @@ postgresql:
   
   image:
     repository: postgres
-    tag: "19-alpine"
+    tag: "18-alpine"
     pullPolicy: IfNotPresent
   
   # PostgreSQL credentials
@@ -264,7 +264,7 @@ postgresql:
       command:
         - /bin/sh
         - -c
-        - pg_isready -U postgres
+        - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
@@ -275,7 +275,7 @@ postgresql:
       command:
         - /bin/sh
         - -c
-        - pg_isready -U postgres
+        - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
     initialDelaySeconds: 5
     periodSeconds: 5
     timeoutSeconds: 3
