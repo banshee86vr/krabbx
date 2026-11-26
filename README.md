@@ -30,7 +30,7 @@ Krabbx is a self-hosted dashboard for monitoring Renovate adoption and dependenc
 
 ### Prerequisites
 
-- Node.js 26+
+- Node.js 24+
 - pnpm
 - GitHub token for scanning
 - (Optional) PostgreSQL for persistent storage

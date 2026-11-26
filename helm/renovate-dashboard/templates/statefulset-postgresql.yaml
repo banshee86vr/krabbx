@@ -46,8 +46,8 @@ spec:
                   key: {{ .Values.postgresql.auth.existingSecretKeys.password | default "postgres-password" }}
             - name: POSTGRES_DB
               value: {{ .Values.postgresql.auth.database | quote }}
-            # Postgres 18+ images manage PGDATA under /var/lib/postgresql/<major>/docker.
-            # Mount the parent dir only (same layout as docker-compose.yml).
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
           ports:
             - name: postgresql
               containerPort: 5432
@@ -64,7 +64,7 @@ spec:
             {{- toYaml .Values.postgresql.resources | nindent 12 }}
           volumeMounts:
             - name: data
-              mountPath: /var/lib/postgresql
+              mountPath: /var/lib/postgresql/data
       {{- with .Values.postgresql.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
